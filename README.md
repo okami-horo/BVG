@@ -2,8 +2,8 @@
 
 <img src="app/src/main/res/drawable/ic_banner.webp" style="border-radius: 24px; margin-top: 32px;"/>
 
-# BV
-## Big Video
+# BVG
+## Big Video God（大唱神）
 
 [![Android Sdk Require](https://img.shields.io/badge/Android-5.0%2B-informational?logo=android)](https://apilevels.com/#:~:text=Jetpack%20Compose%20requires%20a%20minSdk%20of%2021%20or%20higher)
 [![GitHub](https://img.shields.io/github/license/aaa1115910/bv)](https://github.com/aaa1115910/bv)
@@ -17,7 +17,7 @@
 </div>
 
 ---
-BV (Big Video) 是一款 [哔哩哔哩](https://www.bilibili.com) 的第三方 `Android`
+BV (Big Video God) 是一款 [哔哩哔哩](https://www.bilibili.com) 的第三方 `Android`
 应用，使用 `Jetpack Compose` 开发，支持 `Android 5.0+`
 
 # 该版本对于某些低配机型消耗极大，由于技术原因暂时无法优化，若有对此方面的进度则会马上更新
