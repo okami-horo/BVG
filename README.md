@@ -10,8 +10,7 @@ Big Video
 [![GitHub](https://img.shields.io/github/license/aaa1115910/bv)](https://github.com/aaa1115910/bv)
 
 
-~~**BV不支持在中国大陆地区内使用，如有相关使用需求请使用 
-[云视听小电视](https://app.bilibili.com)**~~
+** # 该改版严禁tv端使用，若有tv端使用者，请在24小时内删除否则后果自负 [云视听小电视](https://app.bilibili.com)**
 
 
 **该改版已去除中国地区的使用限制，可以随意使用，若觉得卡顿，请使用清浊等app对其进行编译**
@@ -23,8 +22,6 @@ BV (Big Video) 是一款 [哔哩哔哩](https://www.bilibili.com) 的第三方 `
 应用，使用 `Jetpack Compose` 开发，支持 `Android 5.0+`
 
 # 该版本对于一般电视配置消耗极大，由于技术原因暂时无法优化，若有对此方面的进度则会马上更新
-
-# 该改版严禁tv端使用，若有tv端使用者，请在24小时内删除否则后果自负
 
 ## 特色
 
