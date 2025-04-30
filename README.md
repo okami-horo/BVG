@@ -10,7 +10,7 @@ Big Video
 [![GitHub](https://img.shields.io/github/license/aaa1115910/bv)](https://github.com/aaa1115910/bv)
 
 
-** # 该改版严禁tv端使用，若有tv端使用者，请在24小时内删除否则后果自负 [云视听小电视](https://app.bilibili.com)**
+# 该改版严禁tv端使用，若有tv端使用者，请在24小时内删除否则后果自负 [！[云视听小电视](https://img.shields.io/badge/bilibili-下载-informational?logo=bilibili)](https://app.bilibili.com)
 
 
 **该改版已去除中国地区的使用限制，可以随意使用，若觉得卡顿，请使用清浊等app对其进行编译**
