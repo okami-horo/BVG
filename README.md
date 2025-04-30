@@ -25,7 +25,7 @@ BV (Big Video) 是一款 [哔哩哔哩](https://www.bilibili.com) 的第三方 `
 
 
 # 特色
-!- :bug: 丰富多样的 Bug
+- :bug: 丰富多样的 Bug
 - :children_crossing: 反人类设计
 - :art: 异样审美
 - :disappointed: 巨难用
