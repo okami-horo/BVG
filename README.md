@@ -23,7 +23,8 @@ BV (Big Video) 是一款 [哔哩哔哩](https://www.bilibili.com) 的第三方 `
 
 # 该版本对于一般电视配置消耗极大，由于技术原因暂时无法优化，若有对此方面的进度则会马上更新
 
-# 特色
+#
+ 特色
 - :bug: 丰富多样的 Bug
 - :children_crossing: 反人类设计
 - :art: 异样审美
