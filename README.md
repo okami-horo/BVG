@@ -40,7 +40,7 @@ BV (Big Video) 是一款 [哔哩哔哩](https://www.bilibili.com) 的第三方 `
 
 ### 安装
 
-## [![蓝奏云下载](https://img.shields.io/badge/Android-5.0%2B-informational?logo=android)](https://www.123912.com/s/g8Ufjv-OmMih)
+## [![蓝奏云下载](https://img.shields.io/badge/123网盘-下载-informational?logo=123网盘)](https://www.123912.com/s/g8Ufjv-OmMih)
 ## License
 
 [MIT](LICENSE) © aaa1115910
