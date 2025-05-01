@@ -17,7 +17,7 @@
 </div>
 
 ---
-BV (Big Video God) 是一款 [哔哩哔哩](https://www.bilibili.com) 的第三方 `Android`
+BVG (Big Video God) 是一款 [哔哩哔哩](https://www.bilibili.com) 的第三方 `Android`
 应用，使用 `Jetpack Compose` 开发，支持 `Android 5.0+`
 
 # 该版本对于某些低配机型消耗极大，由于技术原因暂时无法优化，若有对此方面的进度则会马上更新
