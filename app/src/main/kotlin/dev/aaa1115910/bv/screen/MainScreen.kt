@@ -3,7 +3,8 @@ package dev.aaa1115910.bv.screen
 import android.app.Activity
 import android.content.Intent
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.Crossfade
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -135,7 +136,7 @@ fun MainScreen(
         Box(
             modifier = Modifier
         ) {
-            Crossfade(
+            AnimatedContent(
                 targetState = selectedDrawerItem,
                 label = "main animated content",
                 transitionSpec = {
@@ -158,8 +159,7 @@ fun MainScreen(
                 }
             }
 
-            // 优化：已移除 AnimatedVisibility 原始调用
-//AnimatedVisibility(
+            AnimatedVisibility(
                 visible = showUserPanel,
                 enter = fadeIn(),
                 exit = fadeOut()
@@ -169,8 +169,7 @@ fun MainScreen(
                         .fillMaxSize()
                         .background(Color.Black.copy(alpha = 0.6f))
                 ) {
-                    // 优化：已移除 AnimatedVisibility 原始调用
-//AnimatedVisibility(
+                    AnimatedVisibility(
                         modifier = Modifier
                             .align(Alignment.Center),
                         visible = showUserPanel,
