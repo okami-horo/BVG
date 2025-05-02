@@ -12,7 +12,7 @@
 # 该改版是给带键鼠的安卓设备使用的，严禁tv端使用，若有tv端使用者，请在24小时内删除否则后果自负,若有tv端使用需求，请下载官方小电视！[![云视听小电视](https://img.shields.io/badge/bilibili-下载-informational?logo=bilibili)](https://app.bilibili.com)
 
 
-该改版已去除中国地区的使用限制，可以随意使用，若觉得卡顿，请使用清浊等app对其进行编译
+该改版是基于原bv，已去除中国地区的使用限制，其他额外功能正在研发中，若觉得卡顿，请使用清浊等app对其进行编译
 
 </div>
 
