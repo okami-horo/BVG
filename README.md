@@ -30,7 +30,9 @@ BVG (Big Video God) 是一款 [哔哩哔哩](https://www.bilibili.com) 的第三
 - :disappointed: 巨难用
 - :zap: 卡卡卡卡卡卡卡卡卡卡卡卡卡卡卡卡卡卡卡卡
 #
-# 安装                                            BVG[![蓝奏云下载](https://img.shields.io/badge/123网盘-下载-informational?logo=123网盘)](https://www.123912.com/s/g8Ufjv-OmMih)BVGS(前瞻不稳定测试版，尝试优化卡顿）[![蓝奏云下载](https://img.shields.io/badge/123网盘-下载-informational?logo=123网盘)](https://www.123912.com/s/g8Ufjv-81Mih)
+# 安装                                     
+BVG[![蓝奏云下载](https://img.shields.io/badge/123网盘-下载-informational?logo=123网盘)](https://www.123912.com/s/g8Ufjv-OmMih)
+BVGS(前瞻不稳定测试版，尝试优化卡顿）[![蓝奏云下载](https://img.shields.io/badge/123网盘-下载-informational?logo=123网盘)](https://www.123912.com/s/g8Ufjv-81Mih)
 
 # License 
 [MIT](LICENSE) © aaa1115910
