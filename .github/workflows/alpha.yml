@@ -1,21 +1,19 @@
 name: Alpha Build
 
 on:
-  push:
-    branches:
-      - develop
+  workflow_dispatch:
 
 jobs:
   build-alpha:
     name: Build Alpha Apk
     runs-on: macos-latest
-    if: github.repository == 'aaa1115910/bv'
+    if: github.repository == 'okami-horo/BVG'
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: develop
+          ref: ${{ github.ref }}
           fetch-depth: 0
           submodules: 'true'
 
@@ -72,19 +70,6 @@ jobs:
           echo "alpha_info_version_name=${{ fromJson(steps.apk-meta-alpha.outputs.content).elements[0].versionName }}" >> $GITHUB_ENV
           echo "alpha_debug_info_version_code=${{ fromJson(steps.apk-meta-alpha-debug.outputs.content).elements[0].versionCode }}" >> $GITHUB_ENV
           echo "alpha_debug_info_version_name=${{ fromJson(steps.apk-meta-alpha-debug.outputs.content).elements[0].versionName }}" >> $GITHUB_ENV
-
-      - name: Determine tag name
-        id: tag_name
-        run: echo "tag_name=alpha-r${{ env.alpha_info_version_code }}" >> $GITHUB_ENV
-
-      - name: Get changelog
-        id: changelog
-        run: |
-          {
-            echo "changelog<<EOF"
-            echo "$(git log --pretty=format:"- %s (%h)" ${{ github.event.before }}..${{ github.sha }})"
-            echo "EOF"
-          } >> "$GITHUB_ENV"
 
       # upload artifacts alpha debug
 
