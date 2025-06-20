@@ -28,13 +28,12 @@ import dev.aaa1115910.bv.screen.main.ugc.gridItems
 import dev.aaa1115910.bv.viewmodel.home.RecommendViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun RecommendScreen(
     modifier: Modifier = Modifier,
     lazyListState: LazyListState,
-    recommendViewModel: RecommendViewModel = koinViewModel()
+    recommendViewModel: RecommendViewModel
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()

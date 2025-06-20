@@ -34,7 +34,7 @@ import org.koin.androidx.compose.koinViewModel
 fun PopularScreen(
     modifier: Modifier = Modifier,
     lazyListState: LazyListState,
-    popularViewModel: PopularViewModel = koinViewModel()
+    popularViewModel: PopularViewModel
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()

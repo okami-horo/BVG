@@ -81,12 +81,6 @@ fun HomeContent(
             recommendViewModel.loadMore()
         }
         scope.launch(Dispatchers.IO) {
-            popularViewModel.loadMore()
-        }
-        scope.launch(Dispatchers.IO) {
-            dynamicViewModel.loadMore()
-        }
-        scope.launch(Dispatchers.IO) {
             userViewModel.updateUserInfo()
         }
     }
@@ -135,9 +129,14 @@ fun HomeContent(
                     selectedTab = nav as HomeTopNavItem
                     when (nav) {
                         HomeTopNavItem.Recommend -> {}
-                        HomeTopNavItem.Popular -> {}
+                        HomeTopNavItem.Popular -> {
+                            if (popularViewModel.popularVideoList.isEmpty()) {
+                                scope.launch(Dispatchers.IO) { popularViewModel.loadMore() }
+                            }
+                        }
+
                         HomeTopNavItem.Dynamics -> {
-                            if (!dynamicViewModel.loading && dynamicViewModel.isLogin && dynamicViewModel.dynamicList.isEmpty()) {
+                            if (dynamicViewModel.isLogin && dynamicViewModel.dynamicList.isEmpty()) {
                                 scope.launch(Dispatchers.IO) { dynamicViewModel.loadMore() }
                             }
                         }
@@ -188,9 +187,20 @@ fun HomeContent(
                 }
             ) { screen ->
                 when (screen) {
-                    HomeTopNavItem.Recommend -> RecommendScreen(lazyListState = recommendState)
-                    HomeTopNavItem.Popular -> PopularScreen(lazyListState = popularState)
-                    HomeTopNavItem.Dynamics -> DynamicsScreen(lazyListState = dynamicState)
+                    HomeTopNavItem.Recommend -> RecommendScreen(
+                        lazyListState = recommendState,
+                        recommendViewModel = recommendViewModel
+                    )
+
+                    HomeTopNavItem.Popular -> PopularScreen(
+                        lazyListState = popularState,
+                        popularViewModel = popularViewModel
+                    )
+
+                    HomeTopNavItem.Dynamics -> DynamicsScreen(
+                        lazyListState = dynamicState,
+                        dynamicViewModel = dynamicViewModel
+                    )
                 }
             }
         }

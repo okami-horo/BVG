@@ -37,7 +37,7 @@ import org.koin.androidx.compose.koinViewModel
 fun DynamicsScreen(
     modifier: Modifier = Modifier,
     lazyListState: LazyListState,
-    dynamicViewModel: DynamicViewModel = koinViewModel()
+    dynamicViewModel: DynamicViewModel
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()

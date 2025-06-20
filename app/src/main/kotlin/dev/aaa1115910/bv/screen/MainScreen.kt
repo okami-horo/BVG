@@ -51,18 +51,12 @@ import dev.aaa1115910.bv.util.fException
 import dev.aaa1115910.bv.util.fInfo
 import dev.aaa1115910.bv.util.toast
 import dev.aaa1115910.bv.viewmodel.UserViewModel
-import dev.aaa1115910.bv.viewmodel.home.DynamicViewModel
-import dev.aaa1115910.bv.viewmodel.home.PopularViewModel
-import dev.aaa1115910.bv.viewmodel.home.RecommendViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun MainScreen(
     modifier: Modifier = Modifier,
-    recommendViewModel: RecommendViewModel = koinViewModel(),
-    popularViewModel: PopularViewModel = koinViewModel(),
-    dynamicViewModel: DynamicViewModel = koinViewModel(),
     userViewModel: UserViewModel = koinViewModel()
 ) {
     val context = LocalContext.current
