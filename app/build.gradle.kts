@@ -29,26 +29,26 @@ android {
                 load(FileInputStream(signingProp))
             }
             
-            // Validate required properties
+            // Validate required properties with different variable names to avoid conflict
             val keystorePath = properties.getProperty("keystore.path")
             val keystorePassword = properties.getProperty("keystore.pwd")
-            val keyAlias = properties.getProperty("keystore.alias")
-            val keyPassword = properties.getProperty("keystore.alias_pwd")
+            val keystoreAlias = properties.getProperty("keystore.alias")
+            val keystoreAliasPassword = properties.getProperty("keystore.alias_pwd")
             
             if (!keystorePath.isNullOrEmpty() && !keystorePassword.isNullOrEmpty() && 
-                !keyAlias.isNullOrEmpty() && !keyPassword.isNullOrEmpty()) {
+                !keystoreAlias.isNullOrEmpty() && !keystoreAliasPassword.isNullOrEmpty()) {
                 create("key") {
                     storeFile = rootProject.file(keystorePath)
                     storePassword = keystorePassword
-                    keyAlias = keyAlias
-                    keyPassword = keyPassword
+                    keyAlias = keystoreAlias
+                    keyPassword = keystoreAliasPassword
                 }
             } else {
                 println("Warning: Signing properties incomplete. Missing required properties:")
                 if (keystorePath.isNullOrEmpty()) println("  - keystore.path")
                 if (keystorePassword.isNullOrEmpty()) println("  - keystore.pwd")
-                if (keyAlias.isNullOrEmpty()) println("  - keystore.alias")
-                if (keyPassword.isNullOrEmpty()) println("  - keystore.alias_pwd")
+                if (keystoreAlias.isNullOrEmpty()) println("  - keystore.alias")
+                if (keystoreAliasPassword.isNullOrEmpty()) println("  - keystore.alias_pwd")
             }
         }
     }
