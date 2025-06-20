@@ -36,17 +36,26 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Add jks file
+        run: |
+          echo ${{ secrets.SIGN_KEY }} > ./encoded_key
+          base64 -Dd -i encoded_key > key.jks
+
       - name: Add signing properties
         env:
           SIGNING_PROPERTIES: ${{ secrets.SIGNING_PROPERTIES }}
         run: |
           echo ${{ secrets.SIGNING_PROPERTIES }} > encoded_signing_properties
           base64 -Dd -i encoded_signing_properties > signing.properties
-
-      - name: Add jks file
-        run: |
-          echo ${{ secrets.SIGN_KEY }} > ./encoded_key
-          base64 -Dd -i encoded_key > key.jks
+          # Ensure keystore.path is set correctly
+          if ! grep -q "keystore.path" signing.properties; then
+            echo "keystore.path=key.jks" >> signing.properties
+          else
+            # Replace any existing keystore.path with the correct path
+            sed -i '' 's|keystore.path=.*|keystore.path=key.jks|' signing.properties
+          fi
+          echo "Contents of signing.properties:"
+          cat signing.properties
 
       - name: Build apk
         run: ./gradlew assembleDefaultAlpha assembleDefaultDebug
