@@ -20,35 +20,29 @@ if (AppConfiguration.googleServicesAvailable) {
 }
 
 
-val signingProp = file(project.rootProject.file("signing.properties"))
-
 android {
     signingConfigs {
-        if (signingProp.exists()) {
-            val properties = Properties().apply {
-                load(FileInputStream(signingProp))
-            }
-            
-            // Validate required properties with different variable names to avoid conflict
-            val keystorePath = properties.getProperty("keystore.path")
-            val keystorePassword = properties.getProperty("keystore.pwd")
-            val keystoreAlias = properties.getProperty("keystore.alias")
-            val keystoreAliasPassword = properties.getProperty("keystore.alias_pwd")
-            
-            if (!keystorePath.isNullOrEmpty() && !keystorePassword.isNullOrEmpty() && 
-                !keystoreAlias.isNullOrEmpty() && !keystoreAliasPassword.isNullOrEmpty()) {
-                create("key") {
-                    storeFile = rootProject.file(keystorePath)
-                    storePassword = keystorePassword
-                    keyAlias = keystoreAlias
-                    keyPassword = keystoreAliasPassword
+        create("key") {
+            // Priority to command line properties, fallback to signing.properties file
+            val props = Properties().apply {
+                val signingProp = project.rootProject.file("signing.properties")
+                if (signingProp.exists()) {
+                    load(FileInputStream(signingProp))
                 }
-            } else {
-                println("Warning: Signing properties incomplete. Missing required properties:")
-                if (keystorePath.isNullOrEmpty()) println("  - keystore.path")
-                if (keystorePassword.isNullOrEmpty()) println("  - keystore.pwd")
-                if (keystoreAlias.isNullOrEmpty()) println("  - keystore.alias")
-                if (keystoreAliasPassword.isNullOrEmpty()) println("  - keystore.alias_pwd")
+                // Overwrite with project properties from command line if they exist
+                project.properties.forEach { (key, value) ->
+                    if (key.startsWith("keystore.")) {
+                        this[key] = value
+                    }
+                }
+            }
+
+            val keystorePath = props.getProperty("keystore.path")
+            if (!keystorePath.isNullOrEmpty()) {
+                storeFile = rootProject.file(keystorePath)
+                storePassword = props.getProperty("keystore.pwd")
+                keyAlias = props.getProperty("keystore.alias")
+                keyPassword = props.getProperty("keystore.alias_pwd")
             }
         }
     }
@@ -85,9 +79,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            if (signingProp.exists() && signingConfigs.findByName("key") != null) {
-                signingConfig = signingConfigs.getByName("key")
-            }
+            signingConfig = signingConfigs.findByName("key")
             configure<CrashlyticsExtension> {
                 mappingFileUploadEnabled = AppConfiguration.googleServicesAvailable
             }
@@ -110,9 +102,7 @@ android {
                 "proguard-rules.pro"
             )
             applicationIdSuffix = ".r8test"
-            if (signingProp.exists() && signingConfigs.findByName("key") != null) {
-                signingConfig = signingConfigs.getByName("key")
-            }
+            signingConfig = signingConfigs.findByName("key")
             configure<CrashlyticsExtension> {
                 mappingFileUploadEnabled = false
             }
@@ -123,9 +113,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            if (signingProp.exists() && signingConfigs.findByName("key") != null) {
-                signingConfig = signingConfigs.getByName("key")
-            }
+            signingConfig = signingConfigs.findByName("key")
             configure<CrashlyticsExtension> {
                 mappingFileUploadEnabled = AppConfiguration.googleServicesAvailable
             }
