@@ -28,11 +28,27 @@ android {
             val properties = Properties().apply {
                 load(FileInputStream(signingProp))
             }
-            create("key") {
-                storeFile = rootProject.file(properties.getProperty("keystore.path"))
-                storePassword = properties.getProperty("keystore.pwd")
-                keyAlias = properties.getProperty("keystore.alias")
-                keyPassword = properties.getProperty("keystore.alias_pwd")
+            
+            // Validate required properties
+            val keystorePath = properties.getProperty("keystore.path")
+            val keystorePassword = properties.getProperty("keystore.pwd")
+            val keyAlias = properties.getProperty("keystore.alias")
+            val keyPassword = properties.getProperty("keystore.alias_pwd")
+            
+            if (!keystorePath.isNullOrEmpty() && !keystorePassword.isNullOrEmpty() && 
+                !keyAlias.isNullOrEmpty() && !keyPassword.isNullOrEmpty()) {
+                create("key") {
+                    storeFile = rootProject.file(keystorePath)
+                    storePassword = keystorePassword
+                    keyAlias = keyAlias
+                    keyPassword = keyPassword
+                }
+            } else {
+                println("Warning: Signing properties incomplete. Missing required properties:")
+                if (keystorePath.isNullOrEmpty()) println("  - keystore.path")
+                if (keystorePassword.isNullOrEmpty()) println("  - keystore.pwd")
+                if (keyAlias.isNullOrEmpty()) println("  - keystore.alias")
+                if (keyPassword.isNullOrEmpty()) println("  - keystore.alias_pwd")
             }
         }
     }
@@ -69,7 +85,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            if (signingProp.exists()) signingConfig = signingConfigs.getByName("key")
+            if (signingProp.exists() && signingConfigs.findByName("key") != null) {
+                signingConfig = signingConfigs.getByName("key")
+            }
             configure<CrashlyticsExtension> {
                 mappingFileUploadEnabled = AppConfiguration.googleServicesAvailable
             }
@@ -92,7 +110,9 @@ android {
                 "proguard-rules.pro"
             )
             applicationIdSuffix = ".r8test"
-            if (signingProp.exists()) signingConfig = signingConfigs.getByName("key")
+            if (signingProp.exists() && signingConfigs.findByName("key") != null) {
+                signingConfig = signingConfigs.getByName("key")
+            }
             configure<CrashlyticsExtension> {
                 mappingFileUploadEnabled = false
             }
@@ -103,7 +123,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            if (signingProp.exists()) signingConfig = signingConfigs.getByName("key")
+            if (signingProp.exists() && signingConfigs.findByName("key") != null) {
+                signingConfig = signingConfigs.getByName("key")
+            }
             configure<CrashlyticsExtension> {
                 mappingFileUploadEnabled = AppConfiguration.googleServicesAvailable
             }
