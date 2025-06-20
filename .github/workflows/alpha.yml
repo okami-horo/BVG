@@ -41,7 +41,7 @@ jobs:
           echo ${{ secrets.SIGN_KEY }} > ./encoded_key
           base64 -Dd -i encoded_key > key.jks
 
-      - name: Add signing properties
+      - name: Add signing properties and build apk
         env:
           SIGNING_PROPERTIES: ${{ secrets.SIGNING_PROPERTIES }}
         run: |
@@ -57,8 +57,7 @@ jobs:
           echo "Contents of signing.properties:"
           cat signing.properties
 
-      - name: Build apk
-        run: ./gradlew assembleDefaultAlpha assembleDefaultDebug
+          ./gradlew assembleDefaultAlpha assembleDefaultDebug
 
       - name: Read alpha apk output metadata
         id: apk-meta-alpha
