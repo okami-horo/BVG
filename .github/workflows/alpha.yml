@@ -41,24 +41,12 @@ jobs:
           echo ${{ secrets.SIGN_KEY }} > ./encoded_key
           base64 -Dd -i encoded_key > key.jks
 
-      - name: Build apk with signing
-        env:
-          SIGNING_PROPERTIES: ${{ secrets.SIGNING_PROPERTIES }}
-        run: |
-          # Decode the signing properties
-          decoded_props=$(echo "$SIGNING_PROPERTIES" | base64 -d)
-
-          # Extract properties into variables
-          prop_keystore_pwd=$(echo "$decoded_props" | grep "keystore.pwd" | cut -d'=' -f2)
-          prop_keystore_alias=$(echo "$decoded_props" | grep "keystore.alias" | cut -d'=' -f2)
-          prop_keystore_alias_pwd=$(echo "$decoded_props" | grep "keystore.alias_pwd" | cut -d'=' -f2)
-
-          # Run Gradle with signing properties
-          ./gradlew assembleDefaultAlpha assembleDefaultDebug \
+      - name: Build apk
+        run: ./gradlew assembleDefaultAlpha assembleDefaultDebug \
             -Pkeystore.path=key.jks \
-            -Pkeystore.pwd="$prop_keystore_pwd" \
-            -Pkeystore.alias="$prop_keystore_alias" \
-            -Pkeystore.alias_pwd="$prop_keystore_alias_pwd"
+            -Pkeystore.pwd=${{ secrets.KEYSTORE_PASSWORD }} \
+            -Pkeystore.alias=${{ secrets.KEY_ALIAS }} \
+            -Pkeystore.alias_pwd=${{ secrets.KEY_ALIAS_PASSWORD }}
 
       - name: Read alpha apk output metadata
         id: apk-meta-alpha
