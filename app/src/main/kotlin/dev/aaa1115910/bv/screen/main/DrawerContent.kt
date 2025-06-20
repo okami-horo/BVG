@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.OndemandVideo
@@ -136,6 +137,7 @@ fun NavigationDrawerScope.DrawerContent(
                 DrawerItem.Home,
                 DrawerItem.UGC,
                 DrawerItem.PGC,
+                DrawerItem.History,
             ).forEach { item ->
                 item {
                     NavigationDrawerItem(
@@ -184,6 +186,7 @@ enum class DrawerItem(
     Home(displayName = "首页", displayIcon = Icons.Default.Home),
     UGC(displayName = "UGC", displayIcon = Icons.Default.OndemandVideo),
     PGC(displayName = "PGC", displayIcon = Icons.Default.Movie),
+    History(displayName = "历史记录", displayIcon = Icons.Default.History),
     Settings(displayName = "设置", displayIcon = Icons.Default.Settings), ;
 }
 
