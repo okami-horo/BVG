@@ -71,6 +71,11 @@ jobs:
           echo "alpha_debug_info_version_code=${{ fromJson(steps.apk-meta-alpha-debug.outputs.content).elements[0].versionCode }}" >> $GITHUB_ENV
           echo "alpha_debug_info_version_name=${{ fromJson(steps.apk-meta-alpha-debug.outputs.content).elements[0].versionName }}" >> $GITHUB_ENV
 
+      - name: Generate release info
+        run: |
+          echo "tag_name=alpha-${{ env.alpha_info_version_name }}-$(date +%Y%m%d-%H%M%S)" >> $GITHUB_ENV
+          echo "changelog=Alpha build ${{ env.alpha_info_version_name }} (Build ${{ env.alpha_info_version_code }})" >> $GITHUB_ENV
+
       # upload artifacts alpha debug
 
       - name: Archive alpha debug build artifacts
