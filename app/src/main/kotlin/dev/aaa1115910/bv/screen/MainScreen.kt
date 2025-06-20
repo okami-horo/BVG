@@ -46,6 +46,7 @@ import dev.aaa1115910.bv.screen.main.HomeContent
 import dev.aaa1115910.bv.screen.main.PgcContent
 import dev.aaa1115910.bv.screen.main.UgcContent
 import dev.aaa1115910.bv.screen.search.SearchInputScreen
+import dev.aaa1115910.bv.screen.user.HistoryScreen
 import dev.aaa1115910.bv.util.fException
 import dev.aaa1115910.bv.util.fInfo
 import dev.aaa1115910.bv.util.toast
@@ -75,6 +76,7 @@ fun MainScreen(
     val ugcFocusRequester = remember { FocusRequester() }
     val pgcFocusRequester = remember { FocusRequester() }
     val searchFocusRequester = remember { FocusRequester() }
+    val historyFocusRequester = remember { FocusRequester() }
 
     val handleBack = {
         val currentTime = System.currentTimeMillis()
@@ -93,6 +95,7 @@ fun MainScreen(
             DrawerItem.UGC -> ugcFocusRequester.requestFocus()
             DrawerItem.PGC -> pgcFocusRequester.requestFocus()
             DrawerItem.Search -> searchFocusRequester.requestFocus()
+            DrawerItem.History -> historyFocusRequester.requestFocus()
             else -> {}
         }
     }
@@ -155,6 +158,7 @@ fun MainScreen(
                     DrawerItem.UGC -> UgcContent(navFocusRequester = ugcFocusRequester)
                     DrawerItem.PGC -> PgcContent(navFocusRequester = pgcFocusRequester)
                     DrawerItem.Search -> SearchInputScreen(defaultFocusRequester = searchFocusRequester)
+                    DrawerItem.History -> HistoryScreen(modifier = Modifier)
                     else -> {}
                 }
             }
