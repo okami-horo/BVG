@@ -14,6 +14,9 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 
+# https://github.com/google/ksp
+google-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+
 # https://developers.google.com/android/guides/google-services-plugin
 google-services = { id = "com.google.gms.google-services", version.ref = "gms" }
 
