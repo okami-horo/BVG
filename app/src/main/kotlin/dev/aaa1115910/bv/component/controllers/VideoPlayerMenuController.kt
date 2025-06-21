@@ -75,7 +75,9 @@ fun VideoPlayerMenuController(
     val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
-        focusRequester.requestFocus(scope)
+        runCatching {
+            focusRequester.requestFocus(scope)
+        }.getOrThrow()
     }
 
     Surface(
@@ -132,11 +134,15 @@ private fun VideoPlayerMenuControllerNav(
     val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(isFocusing) {
-        if (isFocusing) focusRequester.requestFocus(scope)
+        if (isFocusing) runCatching {
+            focusRequester.requestFocus(scope)
+        }.getOrThrow()
     }
 
     LaunchedEffect(Unit) {
-        focusRequester.requestFocus(scope)
+        runCatching {
+            focusRequester.requestFocus(scope)
+        }.getOrThrow()
     }
 
     LazyColumn(

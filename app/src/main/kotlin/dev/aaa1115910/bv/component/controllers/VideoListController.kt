@@ -41,7 +41,9 @@ fun VideoListController(
             it.cid == videoPlayerControllerData.currentVideoCid
         }
         listState.animateScrollToItem(currentIndex)
-        focusRequester.requestFocus(scope)
+        runCatching {
+            focusRequester.requestFocus(scope)
+        }.getOrThrow()
     }
 
     Surface(

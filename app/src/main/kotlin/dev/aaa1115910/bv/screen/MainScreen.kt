@@ -96,7 +96,7 @@ fun MainScreen(
                 DrawerItem.History -> historyFocusRequester.requestFocus(scope)
                 else -> {}
             }
-        }.onFailure {
+        }.getOrElse {
             logger.fException(it) { "request focus requester in drawer item changed failed" }
         }
     }
@@ -105,7 +105,7 @@ fun MainScreen(
         runCatching {
             kotlinx.coroutines.delay(300)
             mainFocusRequester.requestFocus(scope)
-        }.onFailure {
+        }.getOrElse {
             logger.fException(it) { "request default focus requester failed" }
         }
     }

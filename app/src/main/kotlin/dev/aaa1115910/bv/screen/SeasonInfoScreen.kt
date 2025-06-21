@@ -754,8 +754,12 @@ fun SeasonEpisodesDialog(
     }
 
     LaunchedEffect(show) {
-        if (show && tabCount > 1) tabRowFocusRequester.requestFocus(scope)
-        if (show && tabCount == 1) videoListFocusRequester.requestFocus(scope)
+        if (show && tabCount > 1) runCatching {
+            tabRowFocusRequester.requestFocus(scope)
+        }.getOrThrow()
+        if (show && tabCount == 1) runCatching {
+            videoListFocusRequester.requestFocus(scope)
+        }.getOrThrow()
     }
 
     if (show) {

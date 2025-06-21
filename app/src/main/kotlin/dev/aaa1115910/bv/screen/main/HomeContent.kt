@@ -98,13 +98,17 @@ fun HomeContent(
 
     LaunchedEffect(hasFocus) {
         if (hasFocus) {
-            navFocusRequester.requestFocus()
+            runCatching {
+                navFocusRequester.requestFocus()
+            }.getOrThrow()
         }
     }
 
     BackHandler(focusOnContent) {
         logger.fInfo { "onFocusBackToNav" }
-        navFocusRequester.requestFocus(scope)
+        runCatching {
+            navFocusRequester.requestFocus(scope)
+        }.getOrThrow()
         // scroll to top
         scope.launch(Dispatchers.Main) {
             when (selectedTab) {
