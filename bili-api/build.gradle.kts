@@ -8,7 +8,7 @@ group = "dev.aaa1115910"
 dependencies {
     implementation(project(":bili-api-grpc"))
     implementation(libs.jsoup)
-    implementation(libs.kotlinx.coroutines)
+    implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.serialization)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.client.core)
