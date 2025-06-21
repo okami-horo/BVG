@@ -112,3 +112,9 @@
 -dontwarn ch.qos.logback.classic.spi.ILoggingEvent
 -dontwarn ch.qos.logback.classic.spi.LogbackServiceProvider
 -dontwarn ch.qos.logback.classic.spi.LoggingEvent
+
+# Tencent Bugly
+-keepattributes *Annotation*
+-keepattributes Signature
+-dontwarn com.tencent.bugly.**
+-keep public class com.tencent.bugly.** { *; }

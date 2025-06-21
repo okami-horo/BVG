@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
+import com.tencent.bugly.crashreport.CrashReport
 import de.schnettler.datastore.manager.DataStoreManager
 import dev.aaa1115910.biliapi.http.BiliHttpProxyApi
 import dev.aaa1115910.biliapi.repositories.AuthRepository
@@ -88,8 +89,8 @@ class BVApp : Application() {
             androidContext(this@BVApp)
             modules(appModule)
         }
-        FirebaseUtil.init(applicationContext)
-        LogCatcherUtil.installLogCatcher()
+        CrashReport.initCrashReport(applicationContext, BuildConfig.BUGLY_APP_ID, BuildConfig.DEBUG)
+        LogCatcherUtil.installLogCatcher(this)
         initRepository()
         initProxy()
         instance = this

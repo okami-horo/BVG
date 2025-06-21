@@ -1,24 +1,16 @@
 @file:Suppress("UnstableApiUsage")
 
 import com.android.build.gradle.internal.api.ApkVariantOutputImpl
-import com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension
 import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
     alias(gradleLibs.plugins.android.application)
     alias(gradleLibs.plugins.compose.compiler)
-    alias(gradleLibs.plugins.firebase.crashlytics)
     alias(gradleLibs.plugins.google.ksp)
-    alias(gradleLibs.plugins.google.services) apply false
     alias(gradleLibs.plugins.kotlin.android)
     alias(gradleLibs.plugins.kotlin.serialization)
 }
-
-if (AppConfiguration.googleServicesAvailable) {
-    apply(plugin = gradleLibs.plugins.google.services.get().pluginId)
-}
-
 
 android {
     signingConfigs {
@@ -59,6 +51,14 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        ndk {
+            abiFilters.addAll(listOf("x86_64", "x86", "arm64-v8a", "armeabi-v7a"))
+        }
+        buildConfigField(
+            "String",
+            "BUGLY_APP_ID",
+            "\"${System.getenv("BUGLY_APP_ID") ?: ""}\""
+        )
     }
 
     flavorDimensions.add("channel")
@@ -80,9 +80,6 @@ android {
                 "proguard-rules.pro"
             )
             signingConfig = signingConfigs.findByName("key")
-            configure<CrashlyticsExtension> {
-                mappingFileUploadEnabled = AppConfiguration.googleServicesAvailable
-            }
         }
         debug {
             isMinifyEnabled = false
@@ -91,9 +88,6 @@ android {
                 "proguard-rules.pro"
             )
             applicationIdSuffix = ".debug"
-            configure<CrashlyticsExtension> {
-                mappingFileUploadEnabled = false
-            }
         }
         create("r8Test") {
             isMinifyEnabled = true
@@ -103,9 +97,6 @@ android {
             )
             applicationIdSuffix = ".r8test"
             signingConfig = signingConfigs.findByName("key")
-            configure<CrashlyticsExtension> {
-                mappingFileUploadEnabled = false
-            }
         }
         create("alpha") {
             isMinifyEnabled = true
@@ -114,9 +105,6 @@ android {
                 "proguard-rules.pro"
             )
             signingConfig = signingConfigs.findByName("key")
-            configure<CrashlyticsExtension> {
-                mappingFileUploadEnabled = AppConfiguration.googleServicesAvailable
-            }
         }
     }
     // https://issuetracker.google.com/issues/260059413
@@ -181,7 +169,6 @@ ksp {
 dependencies {
     annotationProcessor(androidx.room.compiler)
     ksp(androidx.room.compiler)
-    implementation(platform("${libs.firebase.bom.get()}"))
     implementation(androidx.activity.compose)
     implementation(androidx.core.ktx)
     implementation(androidx.core.splashscreen)
@@ -208,8 +195,6 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.gif)
     implementation(libs.coil.svg)
-    implementation(libs.firebase.analytics.ktx)
-    implementation(libs.firebase.crashlytics.ktx)
     implementation(libs.geetest.sensebot)
     implementation(libs.koin.android)
     implementation(libs.koin.compose)
@@ -229,6 +214,7 @@ dependencies {
     implementation(libs.qrcode)
     implementation(libs.rememberPreference)
     implementation(libs.slf4j.android.mvysny)
+    implementation(libs.tencent.bugly.crashreport)
     implementation(project(mapOf("path" to ":bili-api")))
     implementation(project(mapOf("path" to ":bili-subtitle")))
     implementation(project(mapOf("path" to ":bv-player")))

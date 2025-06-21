@@ -28,11 +28,6 @@ jobs:
         with:
           dependency-graph: generate-and-submit
 
-      - name: Write google-services.json
-        env:
-          DATA: ${{ secrets.GOOGLE_SERVICES_JSON }}
-        run: echo $DATA > app/google-services.json
-
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
@@ -64,6 +59,8 @@ jobs:
           cat gradle.properties
 
       - name: Build apk
+        env:
+          BUGLY_APP_ID: ${{ secrets.BUGLY_APP_ID }}
         run: |
           # 构建 Alpha 和 Debug 版本
           ./gradlew assembleDefaultAlpha assembleDefaultDebug
