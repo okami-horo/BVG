@@ -38,6 +38,17 @@ jobs:
 
       - name: Configure Alpha build to use Debug signing
         run: |
+          # 确保 .android 目录存在并创建 debug.keystore
+          mkdir -p .android
+          keytool -genkey -v \
+            -keystore .android/debug.keystore \
+            -alias androiddebugkey \
+            -storepass android \
+            -keypass android \
+            -keyalg RSA \
+            -validity 10000 \
+            -dname "CN=Android Debug, O=Android, C=US"
+            
           # 创建一个临时的 Gradle 属性文件，指定使用 Debug 签名配置
           cat > gradle.properties.new << EOF
           # 原有的 gradle.properties 内容
@@ -51,10 +62,6 @@ jobs:
           EOF
           mv gradle.properties.new gradle.properties
           cat gradle.properties
-
-      - name: Add jks file
-        run: |
-          touch key.jks
 
       - name: Build apk
         run: |
