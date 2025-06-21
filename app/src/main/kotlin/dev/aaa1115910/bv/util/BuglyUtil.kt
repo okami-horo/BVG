@@ -89,8 +89,15 @@ object BuglyUtil {
      */
     fun log(msg: String) {
         if (!initialized) return
-        // 使用正确的CrashReport API记录日志
-        CrashReport.postCatchedException(Exception("[BuglyLog] $msg"))
+        try {
+            // 限制日志长度，避免过长导致崩溃
+            val limitedMsg = if (msg.length > 500) msg.substring(0, 500) + "...(日志已截断)" else msg
+            // 使用正确的CrashReport API记录日志
+            CrashReport.postCatchedException(Exception("[BuglyLog] $limitedMsg"))
+        } catch (e: Exception) {
+            // 捕获可能的异常，避免崩溃
+            e.printStackTrace()
+        }
     }
 
     /**

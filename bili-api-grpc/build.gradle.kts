@@ -12,7 +12,7 @@ dependencies {
     api(libs.grpc.protobuf)
     api(libs.grpc.stub)
     api(libs.protobuf.kotlin)
-    implementation(libs.kotlinx.coroutines)
+    implementation(libs.kotlinx.coroutines.core)
 }
 
 sourceSets["main"].proto {
