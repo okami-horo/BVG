@@ -51,8 +51,10 @@ class RecommendViewModel(
             )
             nextPage = recommendData.nextPage
             recommendVideoList.addAllWithMainContext(recommendData.items)
+        }.onSuccess {
+            // 成功处理已经在前面完成
         }.onFailure {
-            logger.fError { "Load recommend video list failed: ${it.stackTraceToString()}" }
+            logger.fError { "Load recommend video list failed: ${it.message ?: "Unknown error"}" }
             withContext(Dispatchers.Main) {
                 "加载推荐视频失败: ${it.localizedMessage}".toast(BVApp.context)
             }

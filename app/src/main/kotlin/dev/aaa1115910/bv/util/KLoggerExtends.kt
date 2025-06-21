@@ -32,15 +32,24 @@ fun KLogger.fException(throwable: Throwable, msg: () -> Any?) {
 }
 
 private fun buglyLog(msg: String) {
-    BuglyUtil.log(msg)
+    try {
+        BuglyUtil.log(msg)
+    } catch (e: Exception) {
+        // 静默处理异常，防止崩溃
+    }
 }
 
 @Suppress("NOTHING_TO_INLINE")
 internal inline fun (() -> Any?).toStringSafe(): String {
     return try {
-        invoke().toString()
+        val result = invoke()
+        try {
+            result?.toString() ?: "null"
+        } catch (e: Exception) {
+            "转换结果为字符串时出错: ${e.message}"
+        }
     } catch (e: Exception) {
-        ErrorMessageProducer.getErrorLog(e)
+        "日志消息调用失败: ${e.message}"
     }
 }
 
