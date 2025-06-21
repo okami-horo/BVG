@@ -42,7 +42,8 @@ jobs:
           base64 -Dd -i encoded_key > key.jks
 
       - name: Build apk
-        run: ./gradlew assembleDefaultAlpha assembleDefaultDebug \
+        run: |
+          ./gradlew assembleDefaultAlpha assembleDefaultDebug \
             -Pkeystore.path=key.jks \
             -Pkeystore.pwd=${{ secrets.KEYSTORE_PASSWORD }} \
             -Pkeystore.alias=${{ secrets.KEY_ALIAS }} \
