@@ -72,7 +72,7 @@ ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negoti
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-encoding = { module = "io.ktor:ktor-client-encoding", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
-ktor-client-serialization-kotlinx = { module = "io.ktor:ktor-client-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-client-serialization-kotlinx = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ktor-server-cio = { module = "io.ktor:ktor-server-cio", version.ref = "ktor" }
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
 ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktor" }
@@ -93,10 +93,10 @@ material = { module = "com.google.android.material:material", version.ref = "mat
 protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobuf" }
 
 # https://github.com/g0dkar/qrcode-kotlin
-qrcode = { module = "io.github.g0dkar:qrcode-kotlin-android", version.ref = "qrcode" }
+qrcode = { module = "io.github.g0dkar:qrcode-kotlin", version.ref = "qrcode" }
 
 # https://github.com/burnoo/compose-remember-preference
-rememberPreference = { module = "dev.burnoo:compose-remember-preference", version.ref = "rememberPreference" }
+rememberPreference = { module = "com.github.burnoo:remember-preference", version.ref = "rememberPreference" }
 
 # https://gitlab.com/mvysny/slf4j-handroid
 slf4j-android-mvysny = { module = "com.gitlab.mvysny.slf4j:slf4j-handroid", version.ref = "slf4j-android-mvysny" }
