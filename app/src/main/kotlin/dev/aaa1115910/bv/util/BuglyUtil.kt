@@ -92,8 +92,10 @@ object BuglyUtil {
         try {
             // 限制日志长度，避免过长导致崩溃
             val limitedMsg = if (msg.length > 500) msg.substring(0, 500) + "...(日志已截断)" else msg
-            // 使用正确的CrashReport API记录日志
-            CrashReport.postCatchedException(Exception("[BuglyLog] $limitedMsg"))
+            // 使用 putUserData 而不是 postCatchedException 记录日志
+            // 这样不会在控制台显示为崩溃或异常
+            val logKey = "log_${System.currentTimeMillis()}"
+            CrashReport.putUserData(appContext, logKey, "[BuglyLog] $limitedMsg")
         } catch (e: Exception) {
             // 捕获可能的异常，避免崩溃
             e.printStackTrace()

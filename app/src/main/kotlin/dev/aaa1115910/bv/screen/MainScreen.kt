@@ -21,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,6 +50,7 @@ import dev.aaa1115910.bv.screen.search.SearchInputScreen
 import dev.aaa1115910.bv.screen.user.HistoryScreen
 import dev.aaa1115910.bv.util.fException
 import dev.aaa1115910.bv.util.fInfo
+import dev.aaa1115910.bv.util.requestFocus
 import dev.aaa1115910.bv.util.toast
 import dev.aaa1115910.bv.viewmodel.UserViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -65,6 +67,7 @@ fun MainScreen(
     var lastPressBack: Long by remember { mutableLongStateOf(0L) }
     var selectedDrawerItem by remember { mutableStateOf(DrawerItem.Home) }
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
     val mainFocusRequester = remember { FocusRequester() }
     val ugcFocusRequester = remember { FocusRequester() }
@@ -84,19 +87,24 @@ fun MainScreen(
     }
 
     val onFocusToContent = {
-        when (selectedDrawerItem) {
-            DrawerItem.Home -> mainFocusRequester.requestFocus()
-            DrawerItem.UGC -> ugcFocusRequester.requestFocus()
-            DrawerItem.PGC -> pgcFocusRequester.requestFocus()
-            DrawerItem.Search -> searchFocusRequester.requestFocus()
-            DrawerItem.History -> historyFocusRequester.requestFocus()
-            else -> {}
+        runCatching {
+            when (selectedDrawerItem) {
+                DrawerItem.Home -> mainFocusRequester.requestFocus(scope)
+                DrawerItem.UGC -> ugcFocusRequester.requestFocus(scope)
+                DrawerItem.PGC -> pgcFocusRequester.requestFocus(scope)
+                DrawerItem.Search -> searchFocusRequester.requestFocus(scope)
+                DrawerItem.History -> historyFocusRequester.requestFocus(scope)
+                else -> {}
+            }
+        }.onFailure {
+            logger.fException(it) { "request focus requester in drawer item changed failed" }
         }
     }
 
     LaunchedEffect(Unit) {
         runCatching {
-            mainFocusRequester.requestFocus()
+            kotlinx.coroutines.delay(300)
+            mainFocusRequester.requestFocus(scope)
         }.onFailure {
             logger.fException(it) { "request default focus requester failed" }
         }
