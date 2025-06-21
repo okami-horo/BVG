@@ -160,7 +160,10 @@ fun MainScreen(
                     DrawerItem.UGC -> UgcContent(navFocusRequester = ugcFocusRequester)
                     DrawerItem.PGC -> PgcContent(navFocusRequester = pgcFocusRequester)
                     DrawerItem.Search -> SearchInputScreen(defaultFocusRequester = searchFocusRequester)
-                    DrawerItem.History -> HistoryScreen(modifier = Modifier)
+                    DrawerItem.History -> HistoryScreen(
+                        modifier = Modifier,
+                        navFocusRequester = historyFocusRequester
+                    )
                     else -> {}
                 }
             }
