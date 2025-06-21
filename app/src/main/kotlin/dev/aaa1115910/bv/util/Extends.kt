@@ -112,9 +112,9 @@ fun FocusRequester.requestFocus(scope: CoroutineScope) {
     scope.launch(Dispatchers.Default) {
         runCatching {
             requestFocus()
-        }.onFailure {
+        }.getOrElse {
             delay(100)
-            runCatching { requestFocus() }
+            runCatching { requestFocus() }.getOrThrow()
         }
     }
 }
