@@ -5,34 +5,34 @@ import io.github.oshai.kotlinlogging.KLogger
 
 fun KLogger.fInfo(msg: () -> Any?) {
     info(msg)
-    firebaseLog("[Info] ${msg.toStringSafe()}")
+    buglyLog("[Info] ${msg.toStringSafe()}")
 }
 
 fun KLogger.fWarn(msg: () -> Any?) {
     warn(msg)
-    firebaseLog("[Warn] ${msg.toStringSafe()}")
+    buglyLog("[Warn] ${msg.toStringSafe()}")
 }
 
 fun KLogger.fDebug(msg: () -> Any?) {
     if (BuildConfig.DEBUG) {
         info(msg)
-        firebaseLog("[Debug] ${msg.toStringSafe()}")
+        buglyLog("[Debug] ${msg.toStringSafe()}")
     }
 }
 
 fun KLogger.fError(msg: () -> Any?) {
     error(msg)
-    firebaseLog("[Error] ${msg.toStringSafe()}")
+    buglyLog("[Error] ${msg.toStringSafe()}")
 }
 
 fun KLogger.fException(throwable: Throwable, msg: () -> Any?) {
     warn { "$msg: ${throwable.stackTraceToString()}" }
-    firebaseLog("[Exception] ${msg.toStringSafe()}: ${throwable.localizedMessage}")
-    FirebaseUtil.recordException(throwable)
+    buglyLog("[Exception] ${msg.toStringSafe()}: ${throwable.localizedMessage}")
+    BuglyUtil.recordException(throwable)
 }
 
-private fun firebaseLog(msg: String) {
-    FirebaseUtil.log(msg)
+private fun buglyLog(msg: String) {
+    BuglyUtil.log(msg)
 }
 
 @Suppress("NOTHING_TO_INLINE")

@@ -46,6 +46,8 @@ jobs:
           base64 -Dd -i encoded_key > key.jks
 
       - name: Build apk
+        env:
+          BUGLY_APP_ID: ${{ secrets.BUGLY_APP_ID }}
         run: ./gradlew assembleDefaultAlpha assembleDefaultDebug
 
       - name: Read alpha apk output metadata
@@ -78,11 +80,13 @@ jobs:
 
       # upload artifacts alpha
 
+      # 注意：由于已禁用代码混淆，可能不会生成混淆映射文件
       - name: Archive alpha build mappings
         uses: actions/upload-artifact@v4
         with:
           name: Alpha build mappings
           path: app/build/outputs/mapping/defaultAlpha
+        continue-on-error: true
 
       - name: Archive alpha build artifacts
         uses: actions/upload-artifact@v4

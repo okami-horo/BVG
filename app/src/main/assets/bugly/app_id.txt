@@ -1,0 +1,2 @@
+# 在此处添加您的腾讯Bugly AppID，移除注释并保留AppID字符串
+# 例如: 1a2b3c4d5e 

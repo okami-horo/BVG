@@ -27,7 +27,7 @@ import dev.aaa1115910.bv.component.settings.CookiesDialog
 import dev.aaa1115910.bv.component.settings.SettingListItem
 import dev.aaa1115910.bv.component.settings.SettingSwitchListItem
 import dev.aaa1115910.bv.screen.settings.SettingsMenuNavItem
-import dev.aaa1115910.bv.util.FirebaseUtil
+import dev.aaa1115910.bv.util.BuglyUtil
 import dev.aaa1115910.bv.util.Prefs
 
 @Composable
@@ -66,7 +66,7 @@ fun OtherSetting(
                     checked = Prefs.enableFirebaseCollection,
                     onCheckedChange = {
                         Prefs.enableFirebaseCollection = it
-                        FirebaseUtil.setCrashlyticsCollectionEnabled(it)
+                        BuglyUtil.setCrashlyticsCollectionEnabled(it)
                     }
                 )
             }

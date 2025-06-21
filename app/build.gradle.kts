@@ -51,14 +51,18 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        
+        // 设置支持的SO库架构
         ndk {
-            abiFilters.addAll(listOf("x86_64", "x86", "arm64-v8a", "armeabi-v7a"))
+            abiFilters.add("armeabi-v7a")
+            abiFilters.add("arm64-v8a")
+            abiFilters.add("x86")
+            abiFilters.add("x86_64")
         }
-        buildConfigField(
-            "String",
-            "BUGLY_APP_ID",
-            "\"${System.getenv("BUGLY_APP_ID") ?: ""}\""
-        )
+        
+        // 从环境变量或Gradle属性中读取Bugly AppID
+        val buglyAppId = System.getenv("BUGLY_APP_ID") ?: project.findProperty("bugly.app.id")?.toString() ?: ""
+        buildConfigField("String", "BUGLY_APP_ID", "\"${buglyAppId}\"")
     }
 
     flavorDimensions.add("channel")
@@ -74,7 +78,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
+            isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -90,7 +94,7 @@ android {
             applicationIdSuffix = ".debug"
         }
         create("r8Test") {
-            isMinifyEnabled = true
+            isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -99,7 +103,7 @@ android {
             signingConfig = signingConfigs.findByName("key")
         }
         create("alpha") {
-            isMinifyEnabled = true
+            isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -214,7 +218,11 @@ dependencies {
     implementation(libs.qrcode)
     implementation(libs.rememberPreference)
     implementation(libs.slf4j.android.mvysny)
-    implementation(libs.tencent.bugly.crashreport)
+    
+    // 腾讯Bugly SDK
+    implementation("com.tencent.bugly:crashreport:latest.release")
+    implementation("com.tencent.bugly:nativecrashreport:latest.release")
+    
     implementation(project(mapOf("path" to ":bili-api")))
     implementation(project(mapOf("path" to ":bili-subtitle")))
     implementation(project(mapOf("path" to ":bv-player")))
