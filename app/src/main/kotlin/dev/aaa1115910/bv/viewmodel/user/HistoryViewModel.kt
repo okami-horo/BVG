@@ -79,8 +79,10 @@ class HistoryViewModel(
                 withContext(Dispatchers.Main) { noMore = true }
                 logger.fInfo { "No more history" }
             }
+        }.onSuccess { 
+            // 成功处理已经在前面完成
         }.onFailure {
-            logger.fWarn { "Update histories failed: ${it.stackTraceToString()}" }
+            logger.fWarn { "Update histories failed: ${it.message ?: "Unknown error"}" }
             when (it) {
                 is AuthFailureException -> {
                     withContext(Dispatchers.Main) {
