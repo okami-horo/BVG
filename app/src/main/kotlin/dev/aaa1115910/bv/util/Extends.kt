@@ -107,14 +107,22 @@ fun Long.formatMinSec(): String {
 
 /**
  * 改进的请求焦点的方法，失败后等待 100ms 后重试
+ * 添加更多错误处理，避免在组件未准备好时请求焦点导致的崩溃
  */
 fun FocusRequester.requestFocus(scope: CoroutineScope) {
-    scope.launch(Dispatchers.Default) {
-        runCatching {
+    scope.launch(Dispatchers.Main) {
+        try {
+            // 先尝试在主线程请求焦点
             requestFocus()
-        }.getOrElse {
+        } catch (e: Exception) {
+            // 如果失败，等待组件准备好后再尝试
             delay(100)
-            runCatching { requestFocus() }.getOrThrow()
+            try {
+                requestFocus()
+            } catch (e: Exception) {
+                // 如果再次失败，忽略错误，避免应用崩溃
+                // 可能是因为组件已被销毁或尚未附加到Compose层次结构
+            }
         }
     }
 }
