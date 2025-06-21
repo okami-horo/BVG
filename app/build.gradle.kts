@@ -216,7 +216,6 @@ dependencies {
     implementation(libs.lottie)
     implementation(libs.material)
     implementation(libs.qrcode)
-    implementation(libs.rememberPreference)
     implementation(libs.slf4j.android.mvysny)
     
     // 腾讯Bugly SDK
