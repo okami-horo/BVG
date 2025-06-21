@@ -29,7 +29,7 @@ import dev.aaa1115910.bv.network.HttpServer
 import dev.aaa1115910.bv.repository.UserRepository
 import dev.aaa1115910.bv.repository.VideoInfoRepository
 import dev.aaa1115910.bv.screen.user.UserSwitchViewModel
-import dev.aaa1115910.bv.util.FirebaseUtil
+import dev.aaa1115910.bv.util.BuglyUtil
 import dev.aaa1115910.bv.util.LogCatcherUtil
 import dev.aaa1115910.bv.util.Prefs
 import dev.aaa1115910.bv.viewmodel.PlayerViewModel
@@ -88,7 +88,7 @@ class BVApp : Application() {
             androidContext(this@BVApp)
             modules(appModule)
         }
-        FirebaseUtil.init(applicationContext)
+        BuglyUtil.init(applicationContext)
         LogCatcherUtil.installLogCatcher()
         initRepository()
         initProxy()

@@ -47,6 +47,8 @@ jobs:
           base64 -Dd -i encoded_key > key.jks
 
       - name: Build apk
+        env:
+          BUGLY_APP_ID: ${{ secrets.BUGLY_APP_ID }}
         run: ./gradlew assembleDefaultRelease assembleDefaultDebug
 
       - name: Read release apk output metadata

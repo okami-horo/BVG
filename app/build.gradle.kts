@@ -1,24 +1,16 @@
 @file:Suppress("UnstableApiUsage")
 
 import com.android.build.gradle.internal.api.ApkVariantOutputImpl
-import com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension
 import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
     alias(gradleLibs.plugins.android.application)
     alias(gradleLibs.plugins.compose.compiler)
-    alias(gradleLibs.plugins.firebase.crashlytics)
     alias(gradleLibs.plugins.google.ksp)
-    alias(gradleLibs.plugins.google.services) apply false
     alias(gradleLibs.plugins.kotlin.android)
     alias(gradleLibs.plugins.kotlin.serialization)
 }
-
-if (AppConfiguration.googleServicesAvailable) {
-    apply(plugin = gradleLibs.plugins.google.services.get().pluginId)
-}
-
 
 android {
     signingConfigs {
@@ -59,6 +51,18 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        
+        // 设置支持的SO库架构
+        ndk {
+            abiFilters.add("armeabi-v7a")
+            abiFilters.add("arm64-v8a")
+            abiFilters.add("x86")
+            abiFilters.add("x86_64")
+        }
+        
+        // 从环境变量或Gradle属性中读取Bugly AppID
+        val buglyAppId = System.getenv("BUGLY_APP_ID") ?: project.findProperty("bugly.app.id")?.toString() ?: ""
+        buildConfigField("String", "BUGLY_APP_ID", "\"${buglyAppId}\"")
     }
 
     flavorDimensions.add("channel")
@@ -80,9 +84,6 @@ android {
                 "proguard-rules.pro"
             )
             signingConfig = signingConfigs.findByName("key")
-            configure<CrashlyticsExtension> {
-                mappingFileUploadEnabled = AppConfiguration.googleServicesAvailable
-            }
         }
         debug {
             isMinifyEnabled = false
@@ -91,9 +92,6 @@ android {
                 "proguard-rules.pro"
             )
             applicationIdSuffix = ".debug"
-            configure<CrashlyticsExtension> {
-                mappingFileUploadEnabled = false
-            }
         }
         create("r8Test") {
             isMinifyEnabled = true
@@ -103,9 +101,6 @@ android {
             )
             applicationIdSuffix = ".r8test"
             signingConfig = signingConfigs.findByName("key")
-            configure<CrashlyticsExtension> {
-                mappingFileUploadEnabled = false
-            }
         }
         create("alpha") {
             isMinifyEnabled = true
@@ -114,9 +109,6 @@ android {
                 "proguard-rules.pro"
             )
             signingConfig = signingConfigs.findByName("key")
-            configure<CrashlyticsExtension> {
-                mappingFileUploadEnabled = AppConfiguration.googleServicesAvailable
-            }
         }
     }
     // https://issuetracker.google.com/issues/260059413
@@ -181,7 +173,6 @@ ksp {
 dependencies {
     annotationProcessor(androidx.room.compiler)
     ksp(androidx.room.compiler)
-    implementation(platform("${libs.firebase.bom.get()}"))
     implementation(androidx.activity.compose)
     implementation(androidx.core.ktx)
     implementation(androidx.core.splashscreen)
@@ -208,8 +199,6 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.gif)
     implementation(libs.coil.svg)
-    implementation(libs.firebase.analytics.ktx)
-    implementation(libs.firebase.crashlytics.ktx)
     implementation(libs.geetest.sensebot)
     implementation(libs.koin.android)
     implementation(libs.koin.compose)
@@ -229,6 +218,11 @@ dependencies {
     implementation(libs.qrcode)
     implementation(libs.rememberPreference)
     implementation(libs.slf4j.android.mvysny)
+    
+    // 腾讯Bugly SDK
+    implementation("com.tencent.bugly:crashreport:latest.release")
+    implementation("com.tencent.bugly:nativecrashreport:latest.release")
+    
     implementation(project(mapOf("path" to ":bili-api")))
     implementation(project(mapOf("path" to ":bili-subtitle")))
     implementation(project(mapOf("path" to ":bv-player")))
