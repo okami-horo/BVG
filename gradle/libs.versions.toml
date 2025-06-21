@@ -57,6 +57,9 @@ koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 koin-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin-compose" }
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 
+# https://kotlinlang.org/docs/jvm-test-using-junit.html
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test" }
+
 # https://github.com/Kotlin/kotlinx.coroutines
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 
