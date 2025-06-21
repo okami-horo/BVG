@@ -93,10 +93,10 @@ material = { module = "com.google.android.material:material", version.ref = "mat
 protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobuf" }
 
 # https://github.com/g0dkar/qrcode-kotlin
-qrcode = { module = "io.github.g0dkar:qrcode-kotlin", version.ref = "qrcode" }
+qrcode = { module = "io.github.g0dkar:qrcode-kotlin-android", version.ref = "qrcode" }
 
 # https://github.com/burnoo/compose-remember-preference
-rememberPreference = { module = "com.github.burnoo:remember-preference", version.ref = "rememberPreference" }
+rememberPreference = { module = "dev.burnoo:compose-remember-preference", version.ref = "rememberPreference" }
 
 # https://gitlab.com/mvysny/slf4j-handroid
 slf4j-android-mvysny = { module = "com.gitlab.mvysny.slf4j:slf4j-handroid", version.ref = "slf4j-android-mvysny" }
