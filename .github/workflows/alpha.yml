@@ -38,7 +38,9 @@ jobs:
 
       - name: Add jks file
         run: |
-          echo "${{ secrets.SIGN_KEY }}" | base64 -D > key.jks
+          echo "${{ secrets.SIGN_KEY }}" | tr -d '\n\r\t ' | base64 -D > key.jks
+          ls -la key.jks
+          keytool -list -v -keystore key.jks -storepass "${{ secrets.KEYSTORE_PASSWORD }}" || true
 
       - name: Build apk
         run: |
