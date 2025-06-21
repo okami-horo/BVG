@@ -89,7 +89,8 @@ object BuglyUtil {
      */
     fun log(msg: String) {
         if (!initialized) return
-        CrashReport.log(5000, "[BuglyLog] $msg")
+        // 使用正确的CrashReport API记录日志
+        CrashReport.postCatchedException(Exception("[BuglyLog] $msg"))
     }
 
     /**
@@ -105,6 +106,7 @@ object BuglyUtil {
      */
     fun setCrashlyticsCollectionEnabled(enable: Boolean) {
         if (!initialized) return
-        CrashReport.setIsDevelopmentDevice(context = null, !enable) // 反转逻辑，开启收集时不是开发设备
+        // 修复命名参数错误，改为位置参数
+        CrashReport.setIsDevelopmentDevice(null, !enable) // 反转逻辑，开启收集时不是开发设备
     }
 } 
