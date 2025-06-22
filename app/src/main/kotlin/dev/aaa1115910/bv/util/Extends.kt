@@ -110,19 +110,25 @@ fun Long.formatMinSec(): String {
  * 主要处理错误捕获和延迟重试
  */
 fun FocusRequester.requestFocus(scope: CoroutineScope) {
-    scope.launch(Dispatchers.Main) {
-        runCatching {
-            this@requestFocus.requestFocus()
-        }.onFailure { e ->
-            // 如果第一次尝试失败，等待100ms后再次尝试
-            delay(100)
-            runCatching {
+    // 使用特定命名的本地函数避免递归问题
+    fun doFocus() {
+        scope.launch(Dispatchers.Main) {
+            try {
                 this@requestFocus.requestFocus()
-            }.onFailure { retryError ->
-                // 忽略第二次尝试的异常，避免应用崩溃
+            } catch (e: Exception) {
+                // 如果第一次尝试失败，等待100ms后再次尝试
+                delay(100)
+                try {
+                    this@requestFocus.requestFocus()
+                } catch (e: Exception) {
+                    // 忽略第二次尝试的异常
+                }
             }
         }
     }
+    
+    // 执行本地函数
+    doFocus()
 }
 
 fun String.removeHtmlTags(): String = HtmlCompat.fromHtml(
