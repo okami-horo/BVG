@@ -1,5 +1,7 @@
 package dev.aaa1115910.bv.screen.user
 
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,6 +35,7 @@ import dev.aaa1115910.bv.component.videocard.SmallVideoCard
 import dev.aaa1115910.bv.entity.proxy.ProxyArea
 import dev.aaa1115910.bv.viewmodel.user.HistoryViewModel
 import dev.aaa1115910.bv.viewmodel.user.ToViewViewModel
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -42,6 +45,8 @@ fun ToViewScreen(
     ToViewViewModel: ToViewViewModel = koinViewModel()
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val logger = KotlinLogging.logger("ToViewScreen")
     var currentIndex by remember { mutableIntStateOf(0) }
     val showLargeTitle by remember { derivedStateOf { currentIndex < 4 } }
     val titleFontSize by animateFloatAsState(
@@ -51,6 +56,12 @@ fun ToViewScreen(
 
     LaunchedEffect(Unit) {
         ToViewViewModel.update()
+    }
+    
+    // 处理在独立Activity中使用时的返回按钮
+    BackHandler {
+        logger.fInfo { "Back pressed, finishing activity" }
+        (context as? ComponentActivity)?.finish()
     }
 
     Scaffold(

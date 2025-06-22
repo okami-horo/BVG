@@ -1,5 +1,6 @@
 package dev.aaa1115910.bv.screen.user
 
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -47,6 +48,7 @@ import dev.aaa1115910.bv.component.createCustomInitialFocusRestorerModifiers
 import dev.aaa1115910.bv.component.ifElse
 import dev.aaa1115910.bv.component.videocard.SmallVideoCard
 import dev.aaa1115910.bv.viewmodel.user.FavoriteViewModel
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -58,6 +60,7 @@ fun FavoriteScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val logger = KotlinLogging.logger("FavoriteScreen")
     var currentIndex by remember { mutableIntStateOf(0) }
     val showLargeTitle by remember { derivedStateOf { currentIndex < 4 } }
     val titleFontSize by animateFloatAsState(
@@ -78,17 +81,22 @@ fun FavoriteScreen(
     val updateCurrentFavoriteFolder: (folderMetadata: FavoriteFolderMetadata) -> Unit =
         { folderMetadata ->
             favoriteViewModel.currentFavoriteFolderMetadata = folderMetadata
-            favoriteViewModel.favorites.clear()
-            favoriteViewModel.resetPageNumber()
+            favoriteViewModel.favorites.clear()            favoriteViewModel.resetPageNumber()
             favoriteViewModel.updateFolderItems(force = true)
         }
-
-    BackHandler(
-        enabled = !focusOnTabs
-    ) {
-        scope.launch(Dispatchers.Main) {
-            lazyGridState.animateScrollToItem(0)
-            defaultFocusRequester.requestFocus()
+    
+    // 处理返回按钮逻辑
+    BackHandler {
+        if (!focusOnTabs) {
+            // 焦点在内容区域，返回到标签页
+            scope.launch(Dispatchers.Main) {
+                lazyGridState.animateScrollToItem(0)
+                defaultFocusRequester.requestFocus()
+            }
+        } else {
+            // 焦点在标签页或者在独立Activity中，关闭Activity
+            logger.fInfo { "Back pressed, finishing activity" }
+            (context as? ComponentActivity)?.finish()
         }
     }
 

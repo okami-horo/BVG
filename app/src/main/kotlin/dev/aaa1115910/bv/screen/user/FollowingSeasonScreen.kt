@@ -1,5 +1,7 @@
 package dev.aaa1115910.bv.screen.user
 
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -52,7 +54,8 @@ fun FollowingSeasonScreen(
     followingSeasonViewModel: FollowingSeasonViewModel = koinViewModel()
 ) {
     val context = LocalContext.current
-    val logger = KotlinLogging.logger { }
+    val scope = rememberCoroutineScope()
+    val logger = KotlinLogging.logger("FollowingSeasonScreen")
 
     var currentIndex by remember { mutableIntStateOf(0) }
     val showLargeTitle by remember { derivedStateOf { currentIndex < 6 } }
@@ -217,4 +220,10 @@ fun FollowingSeasonScreen(
         onSelectedTypeChange = updateType,
         onSelectedStatusChange = updateStatus
     )
+
+    // 处理在独立Activity中使用时的返回按钮
+    BackHandler {
+        logger.fInfo { "Back pressed, finishing activity" }
+        (context as? ComponentActivity)?.finish()
+    }
 }

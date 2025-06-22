@@ -1,5 +1,7 @@
 package dev.aaa1115910.bv.screen.user
 
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -51,6 +53,7 @@ import dev.aaa1115910.bv.component.LoadingTip
 import dev.aaa1115910.bv.ui.theme.BVTheme
 import dev.aaa1115910.bv.util.requestFocus
 import dev.aaa1115910.bv.viewmodel.user.FollowViewModel
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -60,6 +63,7 @@ fun FollowScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val logger = KotlinLogging.logger("FollowScreen")
     val defaultFocusRequester = remember { FocusRequester() }
 
     var currentIndex by remember { mutableIntStateOf(0) }
@@ -73,6 +77,12 @@ fun FollowScreen(
         if (!followViewModel.updating) {
             defaultFocusRequester.requestFocus(scope)
         }
+    }
+
+    // 处理在独立Activity中使用时的返回按钮
+    BackHandler {
+        logger.fInfo { "Back pressed, finishing activity" }
+        (context as? ComponentActivity)?.finish()
     }
 
     Scaffold(
