@@ -107,12 +107,28 @@ fun Long.formatMinSec(): String {
 
 /**
  * 改进的请求焦点的方法
- * 使用SafeFocusManager处理焦点请求，确保只在UI准备好的情况下安全请求焦点
- * 处理焦点请求队列和失败重试
+ * 主要处理错误捕获和延迟重试
  */
 fun FocusRequester.requestFocus(scope: CoroutineScope) {
-    // 使用兼容方法实现，保持API不变
-    requestFocusWithManager(scope)
+    // 使用特定命名的本地函数避免递归问题
+    fun doFocus() {
+        scope.launch(Dispatchers.Main) {
+            try {
+                this@requestFocus.requestFocus()
+            } catch (e: Exception) {
+                // 如果第一次尝试失败，等待100ms后再次尝试
+                delay(100)
+                try {
+                    this@requestFocus.requestFocus()
+                } catch (e: Exception) {
+                    // 忽略第二次尝试的异常
+                }
+            }
+        }
+    }
+    
+    // 执行本地函数
+    doFocus()
 }
 
 fun String.removeHtmlTags(): String = HtmlCompat.fromHtml(

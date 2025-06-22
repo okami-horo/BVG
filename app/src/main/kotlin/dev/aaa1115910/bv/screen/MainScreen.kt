@@ -109,12 +109,14 @@ fun MainScreen(
     // 使用DisposableEffect标记UI已准备好
     DisposableEffect(Unit) {
         // 延迟200ms后标记UI准备完成，给基本渲染留出时间
-        scope.launch {
+        val job = scope.launch {
             kotlinx.coroutines.delay(200)
             isUiReady = true
             focusManager.markUiReady()
         }
-        onDispose {}
+        onDispose {
+            job.cancel()
+        }
     }
     
     // 当UI准备好且selectedDrawerItem改变时请求焦点

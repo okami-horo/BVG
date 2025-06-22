@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -65,24 +66,30 @@ class SafeFocusManager(private val scope: CoroutineScope) {
      * 执行焦点请求
      */
     private fun processFocusRequest(focusRequester: FocusRequester) {
-        scope.launch(Dispatchers.Main) {
-            runCatching { 
-                focusRequester.focus()
-                logger.debug { "Focus request successful" }
-            }.onFailure { e ->
-                logger.debug(e) { "Focus request failed, will retry once" }
-                // 失败后等待100ms再次尝试
-                withContext(Dispatchers.Main) {
-                    kotlinx.coroutines.delay(100)
-                    runCatching {
-                        focusRequester.focus()
-                        logger.debug { "Retry focus request successful" }
-                    }.onFailure { retryError ->
-                        logger.debug(retryError) { "Retry focus request failed" }
+        // 创建本地函数避免递归调用问题
+        fun doRequestFocus() {
+            scope.launch(Dispatchers.Main) {
+                runCatching { 
+                    focusRequester.requestFocus()
+                    logger.debug { "Focus request successful" }
+                }.onFailure { e ->
+                    logger.debug(e) { "Focus request failed, will retry once" }
+                    // 失败后等待100ms再次尝试
+                    withContext(Dispatchers.Main) {
+                        kotlinx.coroutines.delay(100)
+                        runCatching {
+                            focusRequester.requestFocus()
+                            logger.debug { "Retry focus request successful" }
+                        }.onFailure { retryError ->
+                            logger.debug(retryError) { "Retry focus request failed" }
+                        }
                     }
                 }
             }
         }
+        
+        // 执行本地函数
+        doRequestFocus()
     }
 }
 
@@ -129,7 +136,7 @@ fun Modifier.requestFocusOnPositioned(
 ): Modifier {
     val manager = rememberSafeFocusManager(scope)
     return this.then(
-        androidx.compose.ui.layout.onGloballyPositioned {
+        onGloballyPositioned {
             manager.requestFocus(focusRequester)
         }
     )
