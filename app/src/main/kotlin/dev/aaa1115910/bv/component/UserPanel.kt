@@ -16,7 +16,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CrueltyFree
 import androidx.compose.material.icons.rounded.FavoriteBorder
-import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,7 +49,6 @@ fun UserPanel(
     face: String,
     onHide: () -> Unit,
     onGoMy: () -> Unit,
-    onGoHistory: () -> Unit,
     onGoFavorite: () -> Unit,
     onGoFollowing: () -> Unit,
     onGoLater: () -> Unit
@@ -111,17 +109,7 @@ fun UserPanel(
                             }
                             false
                         },
-                    title = "历史记录",
-                    icon = Icons.Rounded.History,
-                    onClick = {
-                        onGoHistory()
-                        onHide()
-                    }
-                )
-                UserPanelSmallItem(
-                    modifier = Modifier
-                        .width(buttonWidth),
-                    title = "私人藏品",
+                    title = "收藏",
                     icon = Icons.Rounded.FavoriteBorder,
                     onClick = {
                         onGoFavorite()
@@ -131,7 +119,7 @@ fun UserPanel(
                 UserPanelSmallItem(
                     modifier = Modifier
                         .width(buttonWidth),
-                    title = "我追的番",
+                    title = "追番",
                     icon = Icons.Rounded.CrueltyFree,
                     onClick = {
                         onGoFollowing()
@@ -141,7 +129,7 @@ fun UserPanel(
                 UserPanelSmallItem(
                     modifier = Modifier
                         .width(buttonWidth),
-                    title = "现在不看",
+                    title = "稍后",
                     icon = Icons.Rounded.Schedule,
                     onClick = {
                         onGoLater()
@@ -250,9 +238,8 @@ private fun UserPanelPreview() {
             face = "",
             onHide = {},
             onGoMy = {},
-            onGoHistory = {},
-            onGoFollowing = {},
             onGoFavorite = {},
+            onGoFollowing = {},
             onGoLater = {}
         )
     }

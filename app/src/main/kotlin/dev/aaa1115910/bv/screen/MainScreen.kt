@@ -222,9 +222,6 @@ fun MainScreen(
                             onGoMy = {
                                 context.startActivity(Intent(context, UserInfoActivity::class.java))
                             },
-                            onGoHistory = {
-                                context.startActivity(Intent(context, HistoryActivity::class.java))
-                            },
                             onGoFavorite = {
                                 context.startActivity(Intent(context, FavoriteActivity::class.java))
                             },
