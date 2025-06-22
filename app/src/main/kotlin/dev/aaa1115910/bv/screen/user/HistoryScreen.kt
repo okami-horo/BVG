@@ -25,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -41,6 +42,7 @@ import dev.aaa1115910.bv.util.requestFocus
 import dev.aaa1115910.bv.viewmodel.user.HistoryViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -54,6 +56,7 @@ fun HistoryScreen(
     val scope = rememberCoroutineScope()
     val logger = KotlinLogging.logger("HistoryScreen")
     val gridState = rememberLazyGridState()
+    val firstItemFocusRequester = remember { FocusRequester() }
     
     var currentIndex by remember { mutableIntStateOf(0) }
     var focusOnContent by remember { mutableStateOf(false) }
@@ -65,6 +68,19 @@ fun HistoryScreen(
 
     LaunchedEffect(Unit) {
         historyViewModel.update()
+    }
+    
+    // 监听历史记录数据变化，当数据加载完成后自动聚焦到第一个视频卡片
+    LaunchedEffect(historyViewModel.histories.size) {
+        if (historyViewModel.histories.isNotEmpty()) {
+            // 短暂延迟确保UI已完全渲染
+            delay(300)
+            runCatching {
+                firstItemFocusRequester.requestFocus(scope)
+            }.getOrElse {
+                logger.fInfo { "Failed to request focus on first history item: ${it.message}" }
+            }
+        }
     }
     
     BackHandler(focusOnContent) {
@@ -127,6 +143,7 @@ fun HistoryScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     SmallVideoCard(
+                        modifier = if (index == 0) Modifier.focusRequester(firstItemFocusRequester) else Modifier,
                         data = history,
                         onClick = {
                             VideoInfoActivity.actionStart(
