@@ -173,14 +173,7 @@ fun MainScreen(
                 targetState = selectedDrawerItem,
                 label = "main animated content",
                 transitionSpec = {
-                    val coefficient = 20
-                    if (targetState.ordinal < initialState.ordinal) {
-                        fadeIn() + slideInVertically { -it / coefficient } togetherWith
-                                fadeOut() + slideOutVertically { it / coefficient }
-                    } else {
-                        fadeIn() + slideInVertically { it / coefficient } togetherWith
-                                fadeOut() + slideOutVertically { -it / coefficient }
-                    }
+                    fadeIn() togetherWith fadeOut()
                 }
             ) { screen ->
                 when (screen) {

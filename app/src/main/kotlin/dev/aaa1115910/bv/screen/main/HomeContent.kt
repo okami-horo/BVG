@@ -176,36 +176,21 @@ fun HomeContent(
                 .padding(innerPadding)
                 .onFocusChanged { focusOnContent = it.hasFocus }
         ) {
-            AnimatedContent(
-                targetState = selectedTab,
-                label = "home animated content",
-                transitionSpec = {
-                    val coefficient = 10
-                    if (targetState.ordinal < initialState.ordinal) {
-                        fadeIn() + slideInHorizontally { -it / coefficient } togetherWith
-                                fadeOut() + slideOutHorizontally { it / coefficient }
-                    } else {
-                        fadeIn() + slideInHorizontally { it / coefficient } togetherWith
-                                fadeOut() + slideOutHorizontally { -it / coefficient }
-                    }
-                }
-            ) { screen ->
-                when (screen) {
-                    HomeTopNavItem.Recommend -> RecommendScreen(
-                        lazyListState = recommendState,
-                        recommendViewModel = recommendViewModel
-                    )
+            when (selectedTab) {
+                HomeTopNavItem.Recommend -> RecommendScreen(
+                    lazyListState = recommendState,
+                    recommendViewModel = recommendViewModel
+                )
 
-                    HomeTopNavItem.Popular -> PopularScreen(
-                        lazyListState = popularState,
-                        popularViewModel = popularViewModel
-                    )
+                HomeTopNavItem.Popular -> PopularScreen(
+                    lazyListState = popularState,
+                    popularViewModel = popularViewModel
+                )
 
-                    HomeTopNavItem.Dynamics -> DynamicsScreen(
-                        lazyListState = dynamicState,
-                        dynamicViewModel = dynamicViewModel
-                    )
-                }
+                HomeTopNavItem.Dynamics -> DynamicsScreen(
+                    lazyListState = dynamicState,
+                    dynamicViewModel = dynamicViewModel
+                )
             }
         }
     }
