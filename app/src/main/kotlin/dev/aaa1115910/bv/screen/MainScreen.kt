@@ -27,6 +27,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -107,10 +109,9 @@ fun MainScreen(
     }
 
     // 使用DisposableEffect标记UI已准备好
-    DisposableEffect(Unit) {
-        // 延迟200ms后标记UI准备完成，给基本渲染留出时间
+    DisposableEffect(Unit) {        // 延迟200ms后标记UI准备完成，给基本渲染留出时间
         val job = scope.launch {
-            kotlinx.coroutines.delay(200)
+            delay(200)
             isUiReady = true
             focusManager.markUiReady()
         }
