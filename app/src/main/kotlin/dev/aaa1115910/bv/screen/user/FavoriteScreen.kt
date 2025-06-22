@@ -70,18 +70,17 @@ fun FavoriteScreen(
     val focusRestorerModifiers = createCustomInitialFocusRestorerModifiers()
     val defaultFocusRequester = remember { FocusRequester() }
     var focusOnTabs by remember { mutableStateOf(true) }
-    val lazyGridState = rememberLazyGridState()
-
-    val currentTabIndex by remember {
+    val lazyGridState = rememberLazyGridState()    val currentTabIndex by remember {
         derivedStateOf {
             favoriteViewModel.favoriteFolderMetadataList.indexOf(favoriteViewModel.currentFavoriteFolderMetadata)
         }
     }
-
+    
     val updateCurrentFavoriteFolder: (folderMetadata: FavoriteFolderMetadata) -> Unit =
         { folderMetadata ->
             favoriteViewModel.currentFavoriteFolderMetadata = folderMetadata
-            favoriteViewModel.favorites.clear()            favoriteViewModel.resetPageNumber()
+            favoriteViewModel.favorites.clear()
+            favoriteViewModel.resetPageNumber()
             favoriteViewModel.updateFolderItems(force = true)
         }
     
