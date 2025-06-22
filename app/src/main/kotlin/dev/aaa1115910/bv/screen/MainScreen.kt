@@ -119,22 +119,10 @@ fun MainScreen(
             job.cancel()
         }
     }
-    
-    // 当UI准备好且selectedDrawerItem改变时请求焦点
+      // 当UI准备好时，初始化焦点并监听selectedDrawerItem变化
     LaunchedEffect(isUiReady, selectedDrawerItem) {
         if (isUiReady) {
             onFocusToContent()
-        }
-    }
-
-    // 初始化焦点 - 替代之前的延迟300ms方式
-    LaunchedEffect(isUiReady) {
-        if (isUiReady) {
-            runCatching {
-                focusManager.requestFocus(mainFocusRequester)
-            }.getOrElse {
-                logger.fException(it) { "request default focus requester failed" }
-            }
         }
     }
 
