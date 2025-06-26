@@ -54,6 +54,7 @@ fun NavigationDrawerScope.DrawerContent(
     avatar: String = "",
     username: String = "",
     onDrawerItemChanged: (DrawerItem) -> Unit = {},
+    onDrawerItemClicked: (DrawerItem) -> Unit = {},
     onOpenSettings: () -> Unit = {},
     onShowUserPanel: () -> Unit = {},
     onFocusToContent: () -> Unit = {},
@@ -146,7 +147,10 @@ fun NavigationDrawerScope.DrawerContent(
                                 item == DrawerItem.Home,
                                 focusRestorerModifiers.childModifier
                             ),
-                        onClick = { selectedItem = item },
+                        onClick = { 
+                            onDrawerItemClicked(item)
+                            selectedItem = item 
+                        },
                         selected = selectedItem == item,
                         leadingContent = {
                             Icon(

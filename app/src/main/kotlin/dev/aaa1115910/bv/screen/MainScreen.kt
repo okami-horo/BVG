@@ -56,8 +56,10 @@ import dev.aaa1115910.bv.util.fInfo
 import dev.aaa1115910.bv.util.toast
 import dev.aaa1115910.bv.util.rememberSafeFocusManager
 import dev.aaa1115910.bv.viewmodel.UserViewModel
+import dev.aaa1115910.bv.viewmodel.user.HistoryViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.koin.androidx.compose.koinViewModel
+import org.koin.androidx.compose.get
 
 @Composable
 fun MainScreen(
@@ -152,6 +154,29 @@ fun MainScreen(
                 //avatar = "https://i2.hdslb.com/bfs/face/ef0457addb24141e15dfac6fbf45293ccf1e32ab.jpg",
                 //username = "碧诗",
                 onDrawerItemChanged = { selectedDrawerItem = it },
+                onDrawerItemClicked = { clickedItem ->
+                    // 处理菜单项点击事件，即使是当前选中的项目
+                    when (clickedItem) {
+                        DrawerItem.History -> {
+                            // 获取HistoryViewModel并刷新数据
+                            val historyViewModel = koinViewModel<dev.aaa1115910.bv.viewmodel.user.HistoryViewModel>()
+                            historyViewModel.resetAndUpdate() // 使用新添加的方法重置并刷新数据
+                        }
+                        DrawerItem.Home -> {
+                            // 这里可以添加其他菜单项的刷新逻辑
+                        }
+                        DrawerItem.UGC -> {
+                            // UGC内容刷新逻辑
+                        }
+                        DrawerItem.PGC -> {
+                            // PGC内容刷新逻辑
+                        }
+                        DrawerItem.Search -> {
+                            // 搜索内容刷新逻辑
+                        }
+                        else -> {}
+                    }
+                },
                 onOpenSettings = {
                     context.startActivity(Intent(context, SettingsActivity::class.java))
                 },

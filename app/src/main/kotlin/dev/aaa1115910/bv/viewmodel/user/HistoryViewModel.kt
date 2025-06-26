@@ -44,6 +44,18 @@ class HistoryViewModel(
             updateHistories()
         }
     }
+    
+    // 重置并刷新数据
+    fun resetAndUpdate() {
+        // 清空数据
+        histories.clear()
+        // 重置状态
+        noMore = false
+        cursor = 0L
+        updating = false
+        // 重新加载数据
+        update()
+    }
 
     private suspend fun updateHistories(context: Context = BVApp.context) {
         if (updating || noMore) return

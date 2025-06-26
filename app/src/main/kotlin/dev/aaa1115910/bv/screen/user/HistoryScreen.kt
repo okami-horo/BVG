@@ -1,6 +1,5 @@
 package dev.aaa1115910.bv.screen.user
 
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -81,21 +80,22 @@ fun HistoryScreen(
             }.getOrElse {
                 logger.fInfo { "Failed to request focus on first history item: ${it.message}" }
             }
-        }    }
+        }
+    }
     
-    // 处理返回按钮逻辑
-    BackHandler {
-        if (focusOnContent) {
-            logger.fInfo { "onFocusBackToNav" }
-            navFocusRequester.requestFocus(scope)
-            // scroll to top
-            scope.launch(Dispatchers.Main) {
-                gridState.animateScrollToItem(0)
-            }
-        } else {
-            // 在独立Activity中或者焦点不在内容上时，关闭Activity
-            logger.fInfo { "Back pressed, finishing activity" }
-            (context as? ComponentActivity)?.finish()
+    // 当历史记录数据被清空时，自动滚动到顶部
+    LaunchedEffect(historyViewModel.histories.isEmpty()) {
+        if (historyViewModel.histories.isEmpty()) {
+            gridState.animateScrollToItem(0)
+        }
+    }
+    
+    BackHandler(focusOnContent) {
+        logger.fInfo { "onFocusBackToNav" }
+        navFocusRequester.requestFocus(scope)
+        // scroll to top
+        scope.launch(Dispatchers.Main) {
+            gridState.animateScrollToItem(0)
         }
     }
 
