@@ -60,21 +60,39 @@ fun HistoryScreen(
     
     var currentIndex by remember { mutableIntStateOf(0) }
     var focusOnContent by remember { mutableStateOf(false) }
+    
+    // 使用remember { derivedStateOf } 减少重组
     val showLargeTitle by remember { derivedStateOf { currentIndex < 4 } }
     val titleFontSize by animateFloatAsState(
         targetValue = if (showLargeTitle) 48f else 24f,
         label = "title font size"
     )
+    
+    // 使用remember { derivedStateOf } 计算预加载阈值，避免每次焦点变化都重新计算
+    val shouldPreload by remember { derivedStateOf { 
+        val threshold = historyViewModel.histories.size - 15 // 提前15项开始预加载
+        currentIndex > threshold && !historyViewModel.noMore && historyViewModel.histories.isNotEmpty()
+    }}
+    
+    // 监听预加载状态变化，而不是在每个item的onFocus中触发
+    LaunchedEffect(shouldPreload) {
+        if (shouldPreload) {
+            historyViewModel.update()
+        }
+    }
 
     LaunchedEffect(Unit) {
-        historyViewModel.update()
+        // 初始化加载，使用轻量级检查避免不必要的加载
+        if (historyViewModel.histories.isEmpty()) {
+            historyViewModel.update()
+        }
     }
     
     // 监听历史记录数据变化，当数据加载完成后自动聚焦到第一个视频卡片
     LaunchedEffect(historyViewModel.histories.size) {
         if (historyViewModel.histories.isNotEmpty()) {
-            // 短暂延迟确保UI已完全渲染
-            delay(300)
+            // 短暂延迟确保UI已完全渲染，但不要延迟太久
+            delay(100)
             runCatching {
                 firstItemFocusRequester.requestFocus(scope)
             }.getOrElse {
@@ -86,16 +104,17 @@ fun HistoryScreen(
     // 当历史记录数据被清空时，自动滚动到顶部
     LaunchedEffect(historyViewModel.histories.isEmpty()) {
         if (historyViewModel.histories.isEmpty()) {
-            gridState.animateScrollToItem(0)
+            // 使用无动画滚动，减少性能开销
+            gridState.scrollToItem(0)
         }
     }
     
     BackHandler(focusOnContent) {
         logger.fInfo { "onFocusBackToNav" }
         navFocusRequester.requestFocus(scope)
-        // scroll to top
-        scope.launch(Dispatchers.Main) {
-            gridState.animateScrollToItem(0)
+        // 使用不会阻塞UI线程的方式滚动到顶部
+        scope.launch {
+            gridState.scrollToItem(0)
         }
     }
 
@@ -145,7 +164,11 @@ fun HistoryScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp),
             horizontalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            itemsIndexed(historyViewModel.histories) { index, history ->
+            itemsIndexed(
+                items = historyViewModel.histories,
+                // 添加key帮助Compose更有效地重用item
+                key = { _, item -> item.avid }
+            ) { index, history ->
                 Box(
                     contentAlignment = Alignment.Center
                 ) {
@@ -161,10 +184,6 @@ fun HistoryScreen(
                         },
                         onFocus = {
                             currentIndex = index
-                            //预加载
-                            if (index + 20 > historyViewModel.histories.size) {
-                                historyViewModel.update()
-                            }
                         }
                     )
                 }

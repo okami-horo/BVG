@@ -22,6 +22,7 @@ import dev.aaa1115910.bv.util.formatMinSec
 import dev.aaa1115910.bv.util.toast
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -35,40 +36,77 @@ class HistoryViewModel(
 
     var histories = mutableStateListOf<VideoCardData>()
     var noMore by mutableStateOf(false)
-
+    
+    // 加载状态指示器
+    var isLoading by mutableStateOf(false)
+        private set
+    
     private var cursor = 0L
     private var updating = false
+    
+    // 存储当前更新任务的Job引用
+    private var updateJob: Job? = null
 
     fun update() {
-        viewModelScope.launch(Dispatchers.IO) {
+        // 如果已经在更新或无更多数据，则不再触发更新
+        if (updating || noMore) return
+        
+        // 取消正在进行的更新任务
+        updateJob?.cancel()
+        
+        // 启动新的更新任务
+        updateJob = viewModelScope.launch(Dispatchers.IO) {
+            isLoading = true
             updateHistories()
+            isLoading = false
         }
     }
     
     // 重置并刷新数据
     fun resetAndUpdate() {
-        // 清空数据
-        histories.clear()
-        // 重置状态
-        noMore = false
-        cursor = 0L
-        updating = false
-        // 重新加载数据
-        update()
+        // 取消所有正在进行的更新操作
+        updateJob?.cancel()
+        
+        viewModelScope.launch {
+            // 在UI线程清空数据，确保UI立即更新
+            withContext(Dispatchers.Main) {
+                // 清空数据
+                histories.clear()
+                // 重置状态
+                noMore = false
+                isLoading = false
+            }
+            
+            // 重置分页参数
+            cursor = 0L
+            updating = false
+            
+            // 使用IO线程重新加载数据
+            withContext(Dispatchers.IO) {
+                isLoading = true
+                updateHistories()
+                isLoading = false
+            }
+        }
     }
 
     private suspend fun updateHistories(context: Context = BVApp.context) {
         if (updating || noMore) return
         logger.fInfo { "Updating histories with params [cursor=$cursor, apiType=${Prefs.apiType}]" }
         updating = true
+        
+        // 创建临时列表收集新数据，避免频繁更新UI状态
+        val tempList = mutableListOf<VideoCardData>()
+        
         runCatching {
             val data = historyRepository.getHistories(
                 cursor = cursor,
                 preferApiType = Prefs.apiType
             )
 
+            // 在IO线程中处理数据转换
             data.data.forEach { historyItem ->
-                histories.addWithMainContext(
+                tempList.add(
                     VideoCardData(
                         avid = historyItem.oid,
                         title = historyItem.title,
@@ -83,16 +121,22 @@ class HistoryViewModel(
                     )
                 )
             }
-            //update cursor
-            cursor = data.cursor
-            logger.fInfo { "Update history cursor: [cursor=$cursor]" }
-            logger.fInfo { "Update histories success" }
-            if (cursor == 0L) {
-                withContext(Dispatchers.Main) { noMore = true }
-                logger.fInfo { "No more history" }
+            
+            // 批量更新UI，减少UI线程操作次数
+            withContext(Dispatchers.Main) {
+                histories.addAll(tempList)
+                
+                //update cursor
+                cursor = data.cursor
+                if (cursor == 0L) {
+                    noMore = true
+                    logger.fInfo { "No more history" }
+                }
             }
-        }.onSuccess { 
-            // 成功处理已经在前面完成
+            
+            logger.fInfo { "Update history cursor: [cursor=$cursor]" }
+            logger.fInfo { "Update histories success, added ${tempList.size} items" }
+            
         }.onFailure {
             logger.fWarn { "Update histories failed: ${it.message ?: "Unknown error"}" }
             when (it) {

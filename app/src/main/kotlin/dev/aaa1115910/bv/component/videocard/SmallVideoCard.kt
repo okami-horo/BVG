@@ -36,6 +36,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -48,6 +49,7 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import dev.aaa1115910.bv.R
 import dev.aaa1115910.bv.component.UpIcon
 import dev.aaa1115910.bv.entity.carddata.VideoCardData
@@ -63,14 +65,15 @@ fun SmallVideoCard(
     onLongClick: () -> Unit = {},
     onFocus: () -> Unit = {}
 ) {
-    var hasFocus by remember { mutableStateOf(false) }
+    var hasFocus by remember(data.avid) { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
 
     SmallVideoCardContent(
         modifier = modifier
             .onFocusChanged {
+                val wasFocused = hasFocus
                 hasFocus = it.isFocused
-                if (hasFocus) onFocus()
+                if (hasFocus && !wasFocused) onFocus()
             },
         data = data,
         hasFocus = hasFocus,
@@ -78,8 +81,9 @@ fun SmallVideoCard(
         onClick = onClick,
         onLongClick = onLongClick,
         onFocusChanged = {
+            val wasFocused = hasFocus
             hasFocus = it
-            if (it) onFocus()
+            if (it && !wasFocused) onFocus()
         }
     )
 }
@@ -94,14 +98,9 @@ fun SmallVideoCardContent(
     onLongClick: () -> Unit = {},
     onFocusChanged: (Boolean) -> Unit = {}
 ) {
-    /*val infoScale by animateFloatAsState(
-        targetValue = if (hasFocus) 1.05f else 1f,
-        animationSpec = spring(),
-        label = "info scale"
-    )*/
     val infoOffsetY by animateDpAsState(
         targetValue = if (hasFocus) 8.dp else 0.dp,
-        animationSpec = spring(),
+        animationSpec = spring(stiffness = 400f),
         label = "info offset y"
     )
 
@@ -134,7 +133,6 @@ fun SmallVideoCardContent(
 
         CardInfo(
             modifier = Modifier
-                //.scale(infoScale)
                 .offset(y = infoOffsetY),
             title = data.title,
             upName = data.upName
@@ -230,6 +228,7 @@ fun CardCover(
     danmaku: String,
     time: String
 ) {
+    val context = LocalContext.current
     var width by remember { mutableStateOf(200.dp) }
     val showInfo by remember { derivedStateOf { width > 160.dp } }
 
@@ -249,23 +248,33 @@ fun CardCover(
                 .fillMaxWidth()
                 .aspectRatio(1.6f)
                 .clip(MaterialTheme.shapes.large),
-            model = cover.resizedImageUrl(ImageSize.SmallVideoCardCover),
+            model = ImageRequest.Builder(context)
+                .data(cover.resizedImageUrl(ImageSize.SmallVideoCardCover))
+                .crossfade(true)
+                .memoryCacheKey(cover)
+                .build(),
             contentDescription = null,
-            contentScale = ContentScale.FillBounds
+            contentScale = ContentScale.FillBounds,
+            placeholder = painterResource(id = R.drawable.placeholder_cover),
+            error = painterResource(id = R.drawable.placeholder_cover)
         )
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            Color.Black.copy(alpha = shadowAlpha)
+        
+        if (showInfo) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.Black.copy(alpha = shadowAlpha)
+                            )
                         )
                     )
-                )
-        )
+            )
+        }
+        
         AnimatedVisibility(
             visible = showInfo,
             enter = fadeIn(),
@@ -366,7 +375,6 @@ fun SmallVideoCardsPreview() {
     val data = VideoCardData(
         avid = 0,
         title = "震惊！太震惊了！真的是太震惊了！我的天呐！真TMD震惊！",
-        //cover = "http://i2.hdslb.com/bfs/archive/af17fc07b8f735e822563cc45b7b5607a491dfff.jpg",
         cover = "",
         upName = "bishi",
         play = 2333,
