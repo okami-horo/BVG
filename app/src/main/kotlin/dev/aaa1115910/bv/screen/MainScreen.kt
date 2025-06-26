@@ -74,6 +74,9 @@ fun MainScreen(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     
+    // 获取HistoryViewModel实例，用于在onDrawerItemClicked中使用
+    val historyViewModel: HistoryViewModel = koinViewModel()
+    
     // 创建安全焦点管理器
     val focusManager = rememberSafeFocusManager(scope)
     var isUiReady by remember { mutableStateOf(false) }
@@ -158,9 +161,8 @@ fun MainScreen(
                     // 处理菜单项点击事件，即使是当前选中的项目
                     when (clickedItem) {
                         DrawerItem.History -> {
-                            // 获取HistoryViewModel并刷新数据
-                            val historyViewModel = koinViewModel<dev.aaa1115910.bv.viewmodel.user.HistoryViewModel>()
-                            historyViewModel.resetAndUpdate() // 使用新添加的方法重置并刷新数据
+                            // 使用已获取的HistoryViewModel实例
+                            historyViewModel.resetAndUpdate()
                         }
                         DrawerItem.Home -> {
                             // 这里可以添加其他菜单项的刷新逻辑
