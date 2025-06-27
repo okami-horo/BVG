@@ -26,5 +26,4 @@ interface VideoPlayerListener {
 
     /** 前进 */
     fun onSeekForward(seekForwardIncrementMs: Long)
-
 }

@@ -1,6 +1,7 @@
 package dev.aaa1115910.bv.player.impl.exo
 
 import android.content.Context
+import android.net.Uri
 import androidx.annotation.OptIn
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -18,6 +19,10 @@ import dev.aaa1115910.bv.player.AbstractVideoPlayer
 import dev.aaa1115910.bv.player.OkHttpUtil
 import dev.aaa1115910.bv.player.VideoPlayerOptions
 import dev.aaa1115910.bv.player.formatMinSec
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(UnstableApi::class)
 class ExoMediaPlayer(
@@ -26,6 +31,15 @@ class ExoMediaPlayer(
 ) : AbstractVideoPlayer(), Player.Listener {
     var mPlayer: ExoPlayer? = null
     protected var mMediaSource: MediaSource? = null
+    
+    // 保存当前播放的URL以便重试
+    private var currentVideoUrl: String? = null
+    private var currentAudioUrl: String? = null
+    
+    // 重试相关属性
+    private var retryCount = 0
+    private val maxRetryCount = 3
+    private val retryDelayMs = 500L // 重试间隔时间，单位ms
 
     @OptIn(UnstableApi::class)
     private val dataSourceFactory =
@@ -69,6 +83,13 @@ class ExoMediaPlayer(
 
     @OptIn(UnstableApi::class)
     override fun playUrl(videoUrl: String?, audioUrl: String?) {
+        // 保存当前URL以便重试
+        currentVideoUrl = videoUrl
+        currentAudioUrl = audioUrl
+        
+        // 重置重试计数
+        retryCount = 0
+        
         val videoMediaSource = videoUrl?.let {
             ProgressiveMediaSource.Factory(dataSourceFactory)
                 .createMediaSource(MediaItem.fromUri(it))
@@ -191,6 +212,41 @@ class ExoMediaPlayer(
         get() = mPlayer?.videoSize?.height ?: 0
 
     override fun onPlayerError(error: PlaybackException) {
-        mPlayerEventListener?.onError(error)
+        // 检查是否是HTTP相关错误
+        val shouldRetry = when (error.errorCode) {
+            // 处理HTTP错误，包括403 Forbidden
+            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
+            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT,
+            PlaybackException.ERROR_CODE_IO_INVALID_HTTP_CONTENT_TYPE,
+            PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS -> {
+                // 检查HTTP状态码是否为403
+                val isHttp403 = error.message?.contains("403") == true
+                isHttp403 || retryCount < maxRetryCount
+            }
+            else -> false
+        }
+
+        if (shouldRetry && retryCount < maxRetryCount) {
+            retryCount++
+            val position = currentPosition
+            retryPlayback(position)
+        } else {
+            // 重试失败或不需要重试时，通知错误
+            mPlayerEventListener?.onError(error)
+        }
+    }
+    
+    /**
+     * 静默重试播放，不通知用户
+     * @param position 重试时要恢复的播放位置
+     */
+    private fun retryPlayback(position: Long) {
+        CoroutineScope(Dispatchers.Main).launch {
+            delay(retryDelayMs)
+            playUrl(currentVideoUrl, currentAudioUrl)
+            prepare()
+            seekTo(position)
+            start()
+        }
     }
 }
