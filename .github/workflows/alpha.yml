@@ -31,32 +31,17 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Configure Alpha build to use Debug signing
+      - name: Add signing properties
+        env:
+          SIGNING_PROPERTIES: ${{ secrets.SIGNING_PROPERTIES }}
         run: |
-          # 确保 .android 目录存在并创建 debug.keystore
-          mkdir -p .android
-          keytool -genkey -v \
-            -keystore .android/debug.keystore \
-            -alias androiddebugkey \
-            -storepass android \
-            -keypass android \
-            -keyalg RSA \
-            -validity 10000 \
-            -dname "CN=Android Debug, O=Android, C=US"
-            
-          # 创建一个临时的 Gradle 属性文件，指定使用 Debug 签名配置
-          cat > gradle.properties.new << EOF
-          # 原有的 gradle.properties 内容
-          $(cat gradle.properties || echo "# No existing gradle.properties")
-          
-          # 使 Alpha 构建使用 Debug 签名配置
-          android.injected.signing.store.file=$(pwd)/.android/debug.keystore
-          android.injected.signing.store.password=android
-          android.injected.signing.key.alias=androiddebugkey
-          android.injected.signing.key.password=android
-          EOF
-          mv gradle.properties.new gradle.properties
-          cat gradle.properties
+          echo ${{ secrets.SIGNING_PROPERTIES }} > encoded_signing_properties
+          base64 -Dd -i encoded_signing_properties > signing.properties
+
+      - name: Add jks file
+        run: |
+          echo ${{ secrets.SIGN_KEY }} > ./encoded_key
+          base64 -Dd -i encoded_key > key.jks
 
       - name: Build apk
         env:
