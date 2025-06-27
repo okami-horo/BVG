@@ -11,3 +11,7 @@
 /.idea/migrations.xml
 /.idea/codeStyles/
 temp_keystore/
+my-release-key.jks
+sign/key_base64.txt
+sign/properties_base64.txt
+sign/signing.properties
