@@ -1,7 +1,11 @@
 name: Alpha Build
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - '*'
+      - '!new_focus'  # 排除主分支，因为主分支已经有release工作流
+  workflow_dispatch:  # 保留手动触发选项
 
 jobs:
   build-alpha:
@@ -82,8 +86,9 @@ jobs:
 
       - name: Generate release info
         run: |
-          echo "tag_name=alpha-${{ env.debug_info_version_name }}-$(date +%Y%m%d-%H%M%S)" >> $GITHUB_ENV
-          echo "changelog=Debug build ${{ env.debug_info_version_name }} (Build ${{ env.debug_info_version_code }})" >> $GITHUB_ENV
+          # 使用分支名、版本和时间戳创建标签
+          echo "tag_name=alpha-${{ github.ref_name }}-${{ env.debug_info_version_name }}-$(date +%Y%m%d-%H%M%S)" >> $GITHUB_ENV
+          echo "changelog=Alpha build for branch ${{ github.ref_name }} - ${{ env.debug_info_version_name }} (Build ${{ env.debug_info_version_code }})" >> $GITHUB_ENV
 
       # 上传 Debug APK
       - name: Archive debug build artifacts
@@ -108,7 +113,7 @@ jobs:
             app/build/outputs/apk/default/debug/BV_${{ env.debug_info_version_code }}_${{ env.debug_info_version_name }}_default_universal.apk
             app/build/outputs/apk/default/alpha/BV_${{ env.alpha_info_version_code }}_${{ env.alpha_info_version_name }}_default_universal.apk
           tag_name: ${{ env.tag_name }}
-          name: ${{ env.debug_info_version_name }}
+          name: Alpha ${{ env.debug_info_version_name }} (${{ github.ref_name }})
           prerelease: true
           body: ${{ env.changelog }}
           target_commitish: ${{ github.sha }}

@@ -72,6 +72,7 @@ jobs:
           echo "release_info_version_name=${{ fromJson(steps.apk-meta-release.outputs.content).elements[0].versionName }}" >> $GITHUB_ENV
           echo "release_debug_info_version_code=${{ fromJson(steps.apk-meta-release-debug.outputs.content).elements[0].versionCode }}" >> $GITHUB_ENV
           echo "release_debug_info_version_name=${{ fromJson(steps.apk-meta-release-debug.outputs.content).elements[0].versionName }}" >> $GITHUB_ENV
+          echo "tag_name=v${{ fromJson(steps.apk-meta-release.outputs.content).elements[0].versionName }}" >> $GITHUB_ENV
 
       - name: Get changelog
         id: changelog
@@ -118,7 +119,7 @@ jobs:
             app/build/outputs/apk/default/debug/BV_${{ env.release_debug_info_version_code }}_${{ env.release_debug_info_version_name }}_default_universal.apk
             app/build/outputs/apk/default/release/BV_${{ env.release_info_version_code }}_${{ env.release_info_version_name }}_default_universal.apk
             mapping.zip
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ env.tag_name }}
           name: ${{ env.release_info_version_name }}
           prerelease: false
           body: ${{ env.changelog }}
