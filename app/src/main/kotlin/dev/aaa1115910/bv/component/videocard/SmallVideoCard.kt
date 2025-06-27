@@ -56,7 +56,7 @@ import dev.aaa1115910.bv.entity.carddata.VideoCardData
 import dev.aaa1115910.bv.ui.theme.BVTheme
 import dev.aaa1115910.bv.util.ImageSize
 import dev.aaa1115910.bv.util.resizedImageUrl
-import androidx.compose.ui.draw.ColorPainter
+import androidx.compose.ui.graphics.painter.ColorPainter
 
 @Composable
 fun SmallVideoCard(
