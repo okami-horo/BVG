@@ -12,13 +12,13 @@ jobs:
   build-release:
     name: Build Release Apk
     runs-on: macos-latest
-    if: github.repository == 'aaa1115910/bv'
+    if: github.repository == 'okami-horo/BVG'
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref_name }}
+          ref: ${{ github.ref }}
           fetch-depth: 0
           submodules: 'true'
 
@@ -27,11 +27,11 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-
-      - name: Write google-services.json
-        env:
-          DATA: ${{ secrets.GOOGLE_SERVICES_JSON }}
-        run: echo $DATA > app/google-services.json
+          
+      - name: Setup Gradle to generate and submit dependency graphs
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          dependency-graph: generate-and-submit
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
