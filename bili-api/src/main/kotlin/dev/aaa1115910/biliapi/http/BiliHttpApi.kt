@@ -106,7 +106,6 @@ object BiliHttpApi {
         ignoreUnknownKeys = true
         prettyPrint = true
     }
-    private val logger = KotlinLogging.logger { }
 
     var wbiImgKey: String? = null
     var wbiSubKey: String? = null

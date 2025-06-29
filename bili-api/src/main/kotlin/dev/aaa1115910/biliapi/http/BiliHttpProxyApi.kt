@@ -1,18 +1,30 @@
 package dev.aaa1115910.biliapi.http
 
+import dev.aaa1115910.biliapi.entity.ApiType
+import dev.aaa1115910.biliapi.entity.CodeType
+import dev.aaa1115910.biliapi.entity.PlayData
+import dev.aaa1115910.biliapi.entity.danmaku.DanmakuMask
+import dev.aaa1115910.biliapi.entity.danmaku.DanmakuMaskType
 import dev.aaa1115910.biliapi.http.entity.BiliResponse
-import dev.aaa1115910.biliapi.http.entity.search.SearchResultData
+import dev.aaa1115910.biliapi.http.entity.danmaku.DanmakuSegmentIndex
+import dev.aaa1115910.biliapi.http.entity.danmaku.DanmakuView
+import dev.aaa1115910.biliapi.http.entity.proxy.ProxyPlayUrlData
+import dev.aaa1115910.biliapi.http.entity.proxy.ProxySubtitleData
+import dev.aaa1115910.biliapi.http.entity.proxy.ProxyVideoDetailData
+import dev.aaa1115910.biliapi.http.entity.proxy.ProxyVideoMoreInfo
+import dev.aaa1115910.biliapi.http.entity.subtitle.SubtitleData
 import dev.aaa1115910.biliapi.http.entity.video.PlayUrlData
+import dev.aaa1115910.biliapi.http.entity.video.VideoDetailData
+import dev.aaa1115910.biliapi.http.entity.video.VideoMoreInfo
 import dev.aaa1115910.biliapi.http.util.encApiSign
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.BrowserUserAgent
-import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.retry.HttpRequestRetry
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
@@ -26,7 +38,6 @@ import java.util.concurrent.TimeUnit
 object BiliHttpProxyApi {
     private var endPoint: String = ""
     private lateinit var client: HttpClient
-    private val logger = KotlinLogging.logger { }
 
     // 创建限制连接池大小的OkHttpClient
     private fun createOkHttpClient(proxyServer: String? = null) = okhttp3.OkHttpClient.Builder()

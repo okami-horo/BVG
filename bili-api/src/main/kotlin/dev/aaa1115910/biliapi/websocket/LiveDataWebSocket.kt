@@ -6,7 +6,6 @@ import dev.aaa1115910.biliapi.http.entity.live.FrameHeader
 import dev.aaa1115910.biliapi.http.entity.live.LiveEvent
 import dev.aaa1115910.biliapi.http.entity.live.readFrameHeader
 import dev.aaa1115910.biliapi.http.util.zlibDecompress
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.BrowserUserAgent
@@ -39,7 +38,6 @@ import java.util.concurrent.TimeUnit
 
 object LiveDataWebSocket {
     private lateinit var client: HttpClient
-    private val logger = KotlinLogging.logger { }
 
     private val heartbeat = byteArrayOf(
         0, 0, 0, 0x1f,
@@ -181,12 +179,12 @@ object LiveDataWebSocket {
 
                     //普通包正文使用brotli压缩,解压为一个带头部的协议0普通包
                     3 -> {
-                        logger.warn { "todo package version: ${head.version}" }
+                        println("WARN: todo package version: ${head.version}")
                         bytePack.readByteArray()
                     }
 
                     else -> {
-                        logger.warn { "Unknown package version: ${head.version}" }
+                        println("WARN: Unknown package version: ${head.version}")
                         bytePack.readByteArray()
                     }
                 }
@@ -198,7 +196,7 @@ object LiveDataWebSocket {
             }
 
             else -> {
-                logger.warn { "Unknown package type: ${head.type}" }
+                println("WARN: Unknown package type: ${head.type}")
                 bytePack.readByteArray()
             }
         }
@@ -276,7 +274,7 @@ object LiveDataWebSocket {
                         medalLevel = medalLevel
                     )
                 }.onFailure {
-                    logger.warn { "Parse danmaku content failed: ${it.message}" }
+                    println("WARN: Parse danmaku content failed: ${it.message}")
                 }
             }
 
@@ -323,8 +321,8 @@ object LiveDataWebSocket {
             "WATCHED_CHANGE" -> {}
             "WIDGET_BANNER" -> {}
             else -> {
-                logger.warn { "Unknown live event: $cmd" }
-                logger.warn { dataJson }
+                println("WARN: Unknown live event: $cmd")
+                println("WARN: dataJson")
             }
         }
         return null

@@ -4,7 +4,6 @@ import dev.aaa1115910.biliapi.http.entity.BiliResponse
 import dev.aaa1115910.biliapi.http.entity.live.DanmuInfoData
 import dev.aaa1115910.biliapi.http.entity.live.HistoryDanmaku
 import dev.aaa1115910.biliapi.http.entity.live.RoomPlayInfoData
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
@@ -24,7 +23,6 @@ import java.util.concurrent.TimeUnit
 object BiliLiveHttpApi {
     private var endPoint: String = ""
     private lateinit var client: HttpClient
-    private val logger = KotlinLogging.logger { }
 
     init {
         createClient()
