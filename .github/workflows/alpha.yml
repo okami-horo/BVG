@@ -51,70 +51,43 @@ jobs:
         env:
           BUGLY_APP_ID: ${{ secrets.BUGLY_APP_ID }}
         run: |
-          # 构建 Alpha 和 Debug 版本
-          ./gradlew assembleDefaultAlpha assembleDefaultDebug
+          # 只构建 Alpha 版本
+          ./gradlew assembleDefaultAlpha
 
       - name: Read alpha apk output metadata
         id: apk-meta-alpha
         uses: juliangruber/read-file-action@v1
         with:
           path: app/build/outputs/apk/default/alpha/output-metadata.json
-        continue-on-error: true  # 如果 Alpha 构建失败，不中断工作流
-
-      - name: Read debug apk output metadata
-        id: apk-meta-debug
-        uses: juliangruber/read-file-action@v1
-        with:
-          path: app/build/outputs/apk/default/debug/output-metadata.json
 
       - name: Parse apk infos
         id: apk-infos
         run: |
-          # 设置默认值，以防 Alpha 构建失败
-          echo "alpha_info_version_code=0" >> $GITHUB_ENV
-          echo "alpha_info_version_name=unknown" >> $GITHUB_ENV
-          
-          # 如果 Alpha 元数据存在，读取它
-          if [ -n "${{ steps.apk-meta-alpha.outputs.content }}" ]; then
-            echo "alpha_info_version_code=${{ fromJson(steps.apk-meta-alpha.outputs.content).elements[0].versionCode }}" >> $GITHUB_ENV
-            echo "alpha_info_version_name=${{ fromJson(steps.apk-meta-alpha.outputs.content).elements[0].versionName }}" >> $GITHUB_ENV
-          fi
-          
-          # 读取 Debug 元数据
-          echo "debug_info_version_code=${{ fromJson(steps.apk-meta-debug.outputs.content).elements[0].versionCode }}" >> $GITHUB_ENV
-          echo "debug_info_version_name=${{ fromJson(steps.apk-meta-debug.outputs.content).elements[0].versionName }}" >> $GITHUB_ENV
+          # 读取 Alpha 元数据
+          echo "alpha_info_version_code=${{ fromJson(steps.apk-meta-alpha.outputs.content).elements[0].versionCode }}" >> $GITHUB_ENV
+          echo "alpha_info_version_name=${{ fromJson(steps.apk-meta-alpha.outputs.content).elements[0].versionName }}" >> $GITHUB_ENV
 
       - name: Generate release info
         run: |
           # 使用分支名、版本和时间戳创建标签
-          echo "tag_name=alpha-${{ github.ref_name }}-${{ env.debug_info_version_name }}-$(date +%Y%m%d-%H%M%S)" >> $GITHUB_ENV
-          echo "changelog=Alpha build for branch ${{ github.ref_name }} - ${{ env.debug_info_version_name }} (Build ${{ env.debug_info_version_code }})" >> $GITHUB_ENV
+          echo "tag_name=alpha-${{ github.ref_name }}-${{ env.alpha_info_version_name }}-$(date +%Y%m%d-%H%M%S)" >> $GITHUB_ENV
+          echo "changelog=Alpha build for branch ${{ github.ref_name }} - ${{ env.alpha_info_version_name }} (Build ${{ env.alpha_info_version_code }})" >> $GITHUB_ENV
 
-      # 上传 Debug APK
-      - name: Archive debug build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: Debug build artifact
-          path: app/build/outputs/apk/default/debug/BV_${{ env.debug_info_version_code }}_${{ env.debug_info_version_name }}_default_universal.apk
-
-      # 上传 Alpha APK（如果存在）
+      # 上传 Alpha APK
       - name: Archive alpha build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Alpha build artifact
           path: app/build/outputs/apk/default/alpha/BV_${{ env.alpha_info_version_code }}_${{ env.alpha_info_version_name }}_default_universal.apk
-        continue-on-error: true  # 如果文件不存在，不中断工作流
 
       # 发布到 GitHub Release
       - name: Publish Pre-Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            app/build/outputs/apk/default/debug/BV_${{ env.debug_info_version_code }}_${{ env.debug_info_version_name }}_default_universal.apk
             app/build/outputs/apk/default/alpha/BV_${{ env.alpha_info_version_code }}_${{ env.alpha_info_version_name }}_default_universal.apk
           tag_name: ${{ env.tag_name }}
-          name: Alpha ${{ env.debug_info_version_name }} (${{ github.ref_name }})
+          name: Alpha ${{ env.alpha_info_version_name }} (${{ github.ref_name }})
           prerelease: true
           body: ${{ env.changelog }}
           target_commitish: ${{ github.sha }}
-          fail_on_unmatched_files: false  # 如果某些文件不存在，不导致失败
