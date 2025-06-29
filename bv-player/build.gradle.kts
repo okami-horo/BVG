@@ -78,6 +78,37 @@ dependencies {
     androidTestImplementation(androidx.compose.ui.test.junit4)
     debugImplementation(androidx.compose.ui.test.manifest)
     debugImplementation(androidx.compose.ui.tooling)
+
+    implementation(project(":bili-api"))
+    implementation(project(":bili-subtitle"))
+
+    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("com.google.android.material:material:1.10.0")
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+
+    // media3
+    val media3Version = "1.2.1"
+    api("androidx.media3:media3-exoplayer:$media3Version")
+    api("androidx.media3:media3-exoplayer-dash:$media3Version")
+    api("androidx.media3:media3-exoplayer-hls:$media3Version")
+    api("androidx.media3:media3-ui:$media3Version")
+    api("androidx.media3:media3-datasource-okhttp:$media3Version")
+    api("androidx.media3:media3-exoplayer-workmanager:$media3Version")
+    api("androidx.media3:media3-database:$media3Version")
+    api("androidx.media3:media3-datasource-cache:$media3Version")
+
+    // ffmpeg extension
+    api("com.github.jauntsdn.media3-extensions:extension-ffmpeg:0.5.0")
+    
+    // Kotlin
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+
+    // logging
+    implementation("io.github.oshai:kotlin-logging-jvm:5.1.0")
 }
 
 tasks.withType<Test> {
