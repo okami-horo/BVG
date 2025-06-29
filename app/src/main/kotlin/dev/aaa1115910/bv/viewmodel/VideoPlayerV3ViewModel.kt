@@ -54,6 +54,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.URI
+import okhttp3.ConnectionPool
+import okhttp3.OkHttpClient
+import okhttp3.Protocol
 
 class VideoPlayerV3ViewModel(
     private val videoInfoRepository: VideoInfoRepository,
@@ -525,8 +528,12 @@ class VideoPlayerV3ViewModel(
                 val subtitle = availableSubtitle.find { it.id == id } ?: return@runCatching
                 subtitleName = subtitle.langDoc
                 logger.info { "Subtitle url: ${subtitle.url}" }
-                val client = HttpClient(OkHttp)
-                val responseText = client.get(subtitle.url).bodyAsText()
+                val httpClient = HttpClient(OkHttp) {
+                    engine {
+                        preconfigured = createOkHttpClient()
+                    }
+                }
+                val responseText = httpClient.get(subtitle.url).bodyAsText()
                 val subtitleData = SubtitleParser.fromBccString(responseText)
                 withContext(Dispatchers.Main) {
                     currentSubtitleId = id
@@ -605,4 +612,17 @@ class VideoPlayerV3ViewModel(
             logger.fWarn { "Load video shot failed: ${it.stackTraceToString()}" }
         }
     }
+
+    private fun createOkHttpClient() = OkHttpClient.Builder()
+        .connectionPool(ConnectionPool(
+            maxIdleConnections = 3,
+            keepAliveDuration = 30,
+            timeUnit = java.util.concurrent.TimeUnit.SECONDS
+        ))
+        .protocols(listOf(Protocol.HTTP_1_1, Protocol.HTTP_2))
+        .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+        .readTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+        .writeTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+        .retryOnConnectionFailure(true)
+        .build()
 }

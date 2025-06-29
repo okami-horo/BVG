@@ -4,6 +4,7 @@ import dev.aaa1115910.biliapi.http.entity.BiliResponse
 import dev.aaa1115910.biliapi.http.entity.search.SearchResultData
 import dev.aaa1115910.biliapi.http.entity.video.PlayUrlData
 import dev.aaa1115910.biliapi.http.util.encApiSign
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
@@ -18,21 +19,41 @@ import io.ktor.client.request.parameter
 import io.ktor.http.URLProtocol
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+import okhttp3.ConnectionPool
+import okhttp3.Protocol
+import java.util.concurrent.TimeUnit
 
 object BiliHttpProxyApi {
-    private var client: HttpClient? = null
+    private var endPoint: String = ""
+    private lateinit var client: HttpClient
+    private val logger = KotlinLogging.logger { }
 
-    private val json = Json {
-        coerceInputValues = true
-        ignoreUnknownKeys = true
-        prettyPrint = true
-    }
+    // 创建限制连接池大小的OkHttpClient
+    private fun createOkHttpClient(proxyServer: String? = null) = okhttp3.OkHttpClient.Builder()
+        .connectionPool(ConnectionPool(
+            maxIdleConnections = 3, // 限制最大空闲连接数
+            keepAliveDuration = 30, 
+            timeUnit = TimeUnit.SECONDS
+        ))
+        .protocols(listOf(Protocol.HTTP_1_1, Protocol.HTTP_2)) // 显式指定协议
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(15, TimeUnit.SECONDS)
+        .writeTimeout(15, TimeUnit.SECONDS)
+        .retryOnConnectionFailure(true)
+        .build()
 
     fun createClient(proxyServer: String) {
         client = HttpClient(OkHttp) {
+            engine {
+                preconfigured = createOkHttpClient(proxyServer)
+            }
             BrowserUserAgent()
             install(ContentNegotiation) {
-                json(json)
+                json(Json {
+                    coerceInputValues = true
+                    ignoreUnknownKeys = true
+                    prettyPrint = true
+                })
             }
             install(ContentEncoding) {
                 deflate(1.0F)
