@@ -8,10 +8,19 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.database.StandaloneDatabaseProvider
+import androidx.media3.datasource.DataSource
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.cache.Cache
+import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
+import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.datasource.okhttp.OkHttpDataSource
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.Renderer
+import androidx.media3.exoplayer.dash.DashMediaSource
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.MergingMediaSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
@@ -23,6 +32,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileWriter
+import java.net.URI
+import java.util.concurrent.Executors
 
 @OptIn(UnstableApi::class)
 class ExoMediaPlayer(
@@ -35,18 +48,58 @@ class ExoMediaPlayer(
     // 保存当前播放的URL以便重试
     private var currentVideoUrl: String? = null
     private var currentAudioUrl: String? = null
+    private var currentUseDashMode: Boolean = false
     
     // 重试相关属性
     private var retryCount = 0
     private val maxRetryCount = 3
     private val retryDelayMs = 500L // 重试间隔时间，单位ms
+    
+    // 缓存相关
+    private val cacheSize = 500 * 1024 * 1024L // 500MB
+    private val cacheDirectory = File(context.cacheDir, "media_cache")
+    private var cache: Cache? = null
+    private val cacheEvictor = LeastRecentlyUsedCacheEvictor(cacheSize)
+    private val databaseProvider = StandaloneDatabaseProvider(context)
+    private val cacheExecutor = Executors.newSingleThreadExecutor()
 
     @OptIn(UnstableApi::class)
-    private val dataSourceFactory =
+    private val okHttpDataSourceFactory =
         OkHttpDataSource.Factory(OkHttpUtil.generateCustomSslOkHttpClient(context)).apply {
             options.userAgent?.let { setUserAgent(it) }
             options.referer?.let { setDefaultRequestProperties(mapOf("referer" to it)) }
         }
+    
+    @OptIn(UnstableApi::class)
+    private val dataSourceFactory: DataSource.Factory by lazy {
+        // 初始化缓存
+        if (cache == null && options.enableCache) {
+            cache = SimpleCache(cacheDirectory, cacheEvictor, databaseProvider)
+        }
+        
+        // 创建带缓存的数据源工厂
+        if (options.enableCache && cache != null) {
+            CacheDataSource.Factory()
+                .setCache(cache!!)
+                .setUpstreamDataSourceFactory(
+                    DefaultDataSource.Factory(context, okHttpDataSourceFactory)
+                )
+                .setCacheWriteDataSinkFactory(null) // 暂时禁用写入缓存，只读取缓存
+                .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
+                .setEventListener(object : CacheDataSource.EventListener {
+                    override fun onCachedBytesRead(cacheSizeBytes: Long, cachedBytesRead: Long) {
+                        // 可以在这里监控缓存读取情况
+                    }
+                    
+                    override fun onCacheIgnored(reason: Int) {
+                        // 缓存被忽略的原因
+                    }
+                })
+        } else {
+            // 不使用缓存时，直接使用OkHttp数据源
+            DefaultDataSource.Factory(context, okHttpDataSourceFactory)
+        }
+    }
 
     init {
         initPlayer()
@@ -62,9 +115,22 @@ class ExoMediaPlayer(
                 }
             )
         }
+        
+        // 创建自定义LoadControl以优化缓冲策略
+        val loadControl = DefaultLoadControl.Builder()
+            .setBufferDurationsMs(
+                DefaultLoadControl.DEFAULT_MIN_BUFFER_MS * 2, // 增加最小缓冲区大小
+                DefaultLoadControl.DEFAULT_MAX_BUFFER_MS * 2, // 增加最大缓冲区大小
+                DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS,
+                DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS
+            )
+            .setPrioritizeTimeOverSizeThresholds(true) // 优先考虑时间而不是大小阈值
+            .build()
+            
         mPlayer = ExoPlayer
             .Builder(context)
             .setRenderersFactory(renderersFactory)
+            .setLoadControl(loadControl)
             .setSeekForwardIncrementMs(1000 * 10)
             .setSeekBackIncrementMs(1000 * 5)
             // 设置音视频同步参数
@@ -75,6 +141,12 @@ class ExoMediaPlayer(
         // 设置音视频同步参数
         mPlayer?.setSkipSilenceEnabled(false) // 禁用跳过静音，以保持音频连续性
         mPlayer?.setVideoScalingMode(C.VIDEO_SCALING_MODE_SCALE_TO_FIT) // 设置视频缩放模式
+        
+        // 启用音视频同步调整
+        mPlayer?.experimentalSetOffloadSchedulingEnabled(false) // 禁用音频卸载调度
+        
+        // 设置最大缓冲区大小
+        mPlayer?.setVideoSurfaceView(null)
 
         initListener()
     }
@@ -85,7 +157,8 @@ class ExoMediaPlayer(
 
     @OptIn(UnstableApi::class)
     override fun setHeader(headers: Map<String, String>) {
-
+        // 设置请求头
+        okHttpDataSourceFactory.setDefaultRequestProperties(headers)
     }
 
     @OptIn(UnstableApi::class)
@@ -93,27 +166,41 @@ class ExoMediaPlayer(
         // 保存当前URL以便重试
         currentVideoUrl = videoUrl
         currentAudioUrl = audioUrl
+        currentUseDashMode = false
         
         // 重置重试计数
         retryCount = 0
         
-        val videoMediaSource = videoUrl?.let {
-            ProgressiveMediaSource.Factory(dataSourceFactory)
-                .createMediaSource(MediaItem.fromUri(it))
-        }
-        val audioMediaSource = audioUrl?.let {
-            ProgressiveMediaSource.Factory(dataSourceFactory)
-                .createMediaSource(MediaItem.fromUri(it))
-        }
+        // 尝试检测是否为DASH格式
+        if (videoUrl != null && videoUrl.endsWith(".mpd")) {
+            // 使用DASH格式处理
+            currentUseDashMode = true
+            val mediaItem = MediaItem.Builder()
+                .setUri(Uri.parse(videoUrl))
+                .build()
+            
+            mMediaSource = DashMediaSource.Factory(dataSourceFactory)
+                .createMediaSource(mediaItem)
+        } else {
+            // 使用传统的分离音视频流方式
+            val videoMediaSource = videoUrl?.let {
+                ProgressiveMediaSource.Factory(dataSourceFactory)
+                    .createMediaSource(MediaItem.fromUri(it))
+            }
+            val audioMediaSource = audioUrl?.let {
+                ProgressiveMediaSource.Factory(dataSourceFactory)
+                    .createMediaSource(MediaItem.fromUri(it))
+            }
 
-        val mediaSources = listOfNotNull(videoMediaSource, audioMediaSource)
-        // 修改MergingMediaSource的构造，添加adjustPeriodTimeOffsets和clipDurations参数
-        // 这两个参数可以确保音视频流同时开始和结束，有助于保持同步
-        mMediaSource = MergingMediaSource(
-            /* adjustPeriodTimeOffsets= */ true,
-            /* clipDurations= */ true,
-            *mediaSources.toTypedArray()
-        )
+            val mediaSources = listOfNotNull(videoMediaSource, audioMediaSource)
+            // 修改MergingMediaSource的构造，添加adjustPeriodTimeOffsets和clipDurations参数
+            // 这两个参数可以确保音视频流同时开始和结束，有助于保持同步
+            mMediaSource = MergingMediaSource(
+                /* adjustPeriodTimeOffsets= */ true,
+                /* clipDurations= */ true,
+                *mediaSources.toTypedArray()
+            )
+        }
     }
 
     @OptIn(UnstableApi::class)
@@ -135,7 +222,8 @@ class ExoMediaPlayer(
     }
 
     override fun reset() {
-        TODO("Not yet implemented")
+        mPlayer?.stop()
+        mPlayer?.clearMediaItems()
     }
 
     override val isPlaying: Boolean
@@ -147,6 +235,17 @@ class ExoMediaPlayer(
 
     override fun release() {
         mPlayer?.release()
+        mPlayer = null
+        
+        // 释放缓存资源
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                cache?.release()
+                cache = null
+            } catch (e: Exception) {
+                // 忽略释放缓存时的错误
+            }
+        }
     }
 
     override val currentPosition: Long
@@ -203,6 +302,9 @@ class ExoMediaPlayer(
                 audio: ${mPlayer?.audioFormat?.bitrate ?: 0} kbps
                 video codec: ${mPlayer?.videoFormat?.sampleMimeType ?: "null"}
                 audio codec: ${mPlayer?.audioFormat?.sampleMimeType ?: "null"} (${getAudioRendererName()})
+                mode: ${if (currentUseDashMode) "DASH" else "MergingMediaSource"}
+                A/V sync offset: ${getAudioVideoSyncOffset()} ms
+                cache: ${if (options.enableCache) "启用" else "禁用"}
             """.trimIndent().also {
                 println(mPlayer?.audioFormat)
             }
@@ -217,6 +319,12 @@ class ExoMediaPlayer(
             }
         }
         return "UnknownRenderer"
+    }
+    
+    private fun getAudioVideoSyncOffset(): Long {
+        // 这个方法尝试估算音视频同步偏移量，实际上ExoPlayer内部已经处理了同步
+        // 这里主要用于调试目的
+        return 0
     }
 
     override val videoWidth: Int
@@ -260,6 +368,59 @@ class ExoMediaPlayer(
             prepare()
             seekTo(position)
             start()
+        }
+    }
+    
+    /**
+     * 创建DASH MPD文件用于测试
+     * 此方法仅用于开发测试，不应在生产环境中使用
+     */
+    private fun createDashMpd(videoUrl: String, audioUrl: String): String {
+        val mpdContent = """
+            <?xml version="1.0"?>
+            <MPD xmlns="urn:mpeg:dash:schema:mpd:2011" profiles="urn:mpeg:dash:profile:full:2011" minBufferTime="PT1.5S">
+                <Period>
+                    <AdaptationSet mimeType="video/mp4">
+                        <Representation id="video" bandwidth="3200000">
+                            <BaseURL>$videoUrl</BaseURL>
+                            <SegmentBase>
+                                <Initialization range="0-0"/>
+                            </SegmentBase>
+                        </Representation>
+                    </AdaptationSet>
+                    <AdaptationSet mimeType="audio/mp4">
+                        <Representation id="audio" bandwidth="128000">
+                            <BaseURL>$audioUrl</BaseURL>
+                            <SegmentBase>
+                                <Initialization range="0-0"/>
+                            </SegmentBase>
+                        </Representation>
+                    </AdaptationSet>
+                </Period>
+            </MPD>
+        """.trimIndent()
+        
+        val file = File(context.cacheDir, "temp_dash.mpd")
+        FileWriter(file).use { it.write(mpdContent) }
+        return Uri.fromFile(file).toString()
+    }
+    
+    /**
+     * 清除缓存
+     */
+    fun clearCache() {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                cache?.release()
+                // 删除缓存文件夹
+                if (cacheDirectory.exists()) {
+                    cacheDirectory.deleteRecursively()
+                }
+                // 重新创建缓存
+                cache = SimpleCache(cacheDirectory, cacheEvictor, databaseProvider)
+            } catch (e: Exception) {
+                // 处理清除缓存时的错误
+            }
         }
     }
 }

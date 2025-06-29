@@ -36,6 +36,8 @@ import dev.aaa1115910.bv.entity.Resolution
 import dev.aaa1115910.bv.entity.VideoCodec
 import dev.aaa1115910.bv.entity.proxy.ProxyArea
 import dev.aaa1115910.bv.player.AbstractVideoPlayer
+import dev.aaa1115910.bv.player.VideoPlayerOptions
+import dev.aaa1115910.bv.player.impl.exo.ExoMediaPlayer
 import dev.aaa1115910.bv.repository.VideoInfoRepository
 import dev.aaa1115910.bv.util.Prefs
 import dev.aaa1115910.bv.util.fException
@@ -54,6 +56,8 @@ import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileWriter
 import java.net.URI
 import okhttp3.ConnectionPool
 import okhttp3.OkHttpClient
@@ -125,6 +129,22 @@ class VideoPlayerV3ViewModel(
     private var currentAid = 0L
     var currentCid = 0L
     private var currentEpid = 0
+
+    init {
+        viewModelScope.launch {
+            runCatching {
+                videoPlayRepository = VideoPlayRepository(
+                    sessData = Prefs.sessData,
+                    biliJct = Prefs.biliJct
+                )
+            }.onFailure {
+                logger.fWarn { "Create video play repository failed: ${it.stackTraceToString()}" }
+            }
+        }
+        
+        // 创建播放器
+        createPlayer()
+    }
 
     private suspend fun releaseDanmakuPlayer() = withContext(Dispatchers.Main) {
         danmakuPlayer?.release()
@@ -385,10 +405,88 @@ class VideoPlayerV3ViewModel(
             currentVideoWidth = videoItem?.width ?: 0
             logger.info { "Video url: $videoUrl" }
             logger.info { "Audio url: $audioUrl" }
-            videoPlayer!!.playUrl(videoUrl, audioUrl)
+            
+            // 判断是否使用DASH格式
+            if (Prefs.useDashFormat) {
+                try {
+                    // 创建临时DASH MPD文件
+                    val dashMpdUrl = createDashMpd(videoUrl, audioUrl, 
+                        videoItem?.bandwidth ?: 3000000, 
+                        audioItem?.bandwidth ?: 128000)
+                    
+                    logger.info { "Using DASH MPD: $dashMpdUrl" }
+                    addLogs("使用DASH格式播放")
+                    
+                    videoPlayer!!.playUrl(dashMpdUrl, null)
+                } catch (e: Exception) {
+                    // 如果DASH格式失败，回退到传统方式
+                    logger.error { "DASH format failed: ${e.message}, fallback to traditional mode" }
+                    addLogs("DASH格式失败，使用传统方式播放")
+                    videoPlayer!!.playUrl(videoUrl, audioUrl)
+                }
+            } else {
+                // 使用传统方式
+                videoPlayer!!.playUrl(videoUrl, audioUrl)
+            }
+            
             videoPlayer!!.prepare()
             showBuffering = true
         }
+    }
+
+    /**
+     * 创建DASH MPD文件
+     * @param videoUrl 视频URL
+     * @param audioUrl 音频URL
+     * @param videoBandwidth 视频带宽
+     * @param audioBandwidth 音频带宽
+     * @return MPD文件的URI
+     */
+    private fun createDashMpd(
+        videoUrl: String, 
+        audioUrl: String,
+        videoBandwidth: Int,
+        audioBandwidth: Int
+    ): String {
+        val videoMimeType = when {
+            videoUrl.contains(".av1.") -> "video/mp4; codecs=\"av01\""
+            videoUrl.contains(".hev1.") || videoUrl.contains(".hevc.") -> "video/mp4; codecs=\"hev1\""
+            else -> "video/mp4; codecs=\"avc1\""
+        }
+        
+        val audioMimeType = when {
+            audioUrl.contains(".flac") -> "audio/flac"
+            audioUrl.contains(".dolby") -> "audio/mp4; codecs=\"ec-3\""
+            else -> "audio/mp4; codecs=\"mp4a.40.2\""
+        }
+        
+        val mpdContent = """
+            <?xml version="1.0"?>
+            <MPD xmlns="urn:mpeg:dash:schema:mpd:2011" profiles="urn:mpeg:dash:profile:full:2011" minBufferTime="PT1.5S" type="static">
+                <Period>
+                    <AdaptationSet mimeType="video/mp4">
+                        <Representation id="video" bandwidth="$videoBandwidth" mimeType="$videoMimeType">
+                            <BaseURL>$videoUrl</BaseURL>
+                            <SegmentBase indexRange="0-0">
+                                <Initialization range="0-0"/>
+                            </SegmentBase>
+                        </Representation>
+                    </AdaptationSet>
+                    <AdaptationSet mimeType="audio/mp4">
+                        <Representation id="audio" bandwidth="$audioBandwidth" mimeType="$audioMimeType">
+                            <BaseURL>$audioUrl</BaseURL>
+                            <SegmentBase indexRange="0-0">
+                                <Initialization range="0-0"/>
+                            </SegmentBase>
+                        </Representation>
+                    </AdaptationSet>
+                </Period>
+            </MPD>
+        """.trimIndent()
+        
+        val file = File(BVApp.context.cacheDir, "dash_${System.currentTimeMillis()}.mpd")
+        FileWriter(file).use { it.write(mpdContent) }
+        return Uri.fromFile(file).toString()
     }
 
     suspend fun loadDanmaku(cid: Long) {
@@ -626,4 +724,20 @@ class VideoPlayerV3ViewModel(
         .writeTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
         .retryOnConnectionFailure(true)
         .build()
+
+    private fun createPlayer() {
+        val options = VideoPlayerOptions(
+            userAgent = USER_AGENT_WEB,
+            referer = "https://www.bilibili.com",
+            enableFfmpegAudioRenderer = Prefs.enableFfmpegAudioRenderer,
+            enableCache = Prefs.enableCache
+        )
+        videoPlayer = ExoMediaPlayer(BVApp.context, options)
+        videoPlayer!!.setPlayerEventListener(object : AbstractVideoPlayer.PlayerEventListener {
+            override fun onPrepared() {
+                logger.info { "Player prepared" }
+                showBuffering = false
+            }
+        })
+    }
 }

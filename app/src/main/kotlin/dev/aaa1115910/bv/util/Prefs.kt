@@ -295,6 +295,28 @@ object Prefs {
                 value
             )
         }
+
+    var useDashFormat: Boolean
+        get() = runBlocking {
+            dsm.getPreferenceFlow(PrefKeys.prefUseDashFormatRequest).first()
+        }
+        set(value) = runBlocking {
+            dsm.editPreference(
+                PrefKeys.prefUseDashFormat,
+                value
+            )
+        }
+
+    var enableCache: Boolean
+        get() = runBlocking {
+            dsm.getPreferenceFlow(PrefKeys.prefEnableCacheRequest).first()
+        }
+        set(value) = runBlocking {
+            dsm.editPreference(
+                PrefKeys.prefEnableCache,
+                value
+            )
+        }
 }
 
 private object PrefKeys {
@@ -339,6 +361,8 @@ private object PrefKeys {
     val prefPreferOfficialCdn = booleanPreferencesKey("prefer_official_cdn")
     val prefDefaultDanmakuMask = booleanPreferencesKey("prefer_enable_webmark")
     val prefEnableFfmpegAudioRenderer = booleanPreferencesKey("enable_ffmpeg_audio_renderer")
+    val prefUseDashFormat = booleanPreferencesKey("use_dash_format")
+    val prefEnableCache = booleanPreferencesKey("enable_cache")
 
     val prefIsLoginRequest = PreferenceRequest(prefIsLoginKey, false)
     val prefUidRequest = PreferenceRequest(prefUidKey, 0)
@@ -391,4 +415,6 @@ private object PrefKeys {
     val prefPreferOfficialCdnRequest = PreferenceRequest(prefPreferOfficialCdn, false)
     val prefDefaultDanmakuMaskRequest = PreferenceRequest(prefDefaultDanmakuMask, false)
     val prefEnableFfmpegEndererRequest = PreferenceRequest(prefEnableFfmpegAudioRenderer, true)
+    val prefUseDashFormatRequest = PreferenceRequest(prefUseDashFormat, true)
+    val prefEnableCacheRequest = PreferenceRequest(prefEnableCache, true)
 }
