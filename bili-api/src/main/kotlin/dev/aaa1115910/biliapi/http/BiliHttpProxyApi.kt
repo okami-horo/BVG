@@ -11,7 +11,6 @@ import io.ktor.client.plugins.BrowserUserAgent
 import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
-import io.ktor.client.plugins.retry.HttpRequestRetry
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
@@ -56,9 +55,6 @@ object BiliHttpProxyApi {
             install(ContentEncoding) {
                 deflate(1.0F)
                 gzip(0.9F)
-            }
-            install(HttpRequestRetry) {
-                retryOnException(maxRetries = 2)
             }
             defaultRequest {
                 url {
