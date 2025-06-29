@@ -45,6 +45,7 @@ import dev.aaa1115910.bv.util.swapList
 import dev.aaa1115910.bv.util.swapListWithMainContext
 import dev.aaa1115910.bv.util.swapMap
 import dev.aaa1115910.bv.util.swapMapWithMainContext
+import dev.aaa1115910.bv.viewmodel.RequestState
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
