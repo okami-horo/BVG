@@ -98,10 +98,10 @@ dependencies {
     api("androidx.media3:media3-datasource-okhttp:$media3Version")
     api("androidx.media3:media3-exoplayer-workmanager:$media3Version")
     api("androidx.media3:media3-database:$media3Version")
-    api("androidx.media3:media3-datasource-cache:$media3Version")
+    api("androidx.media3:media3-common:$media3Version")
 
     // ffmpeg extension
-    api("com.github.jauntsdn.media3-extensions:extension-ffmpeg:0.5.0")
+    api("androidx.media3:media3-decoder-ffmpeg:$media3Version")
     
     // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")

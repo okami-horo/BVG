@@ -127,23 +127,18 @@ class ExoMediaPlayer(
             .setPrioritizeTimeOverSizeThresholds(true) // 优先考虑时间而不是大小阈值
             .build()
             
-        mPlayer = ExoPlayer
-            .Builder(context)
+        val builder = ExoPlayer.Builder(context)
             .setRenderersFactory(renderersFactory)
             .setLoadControl(loadControl)
             .setSeekForwardIncrementMs(1000 * 10)
             .setSeekBackIncrementMs(1000 * 5)
-            // 设置音视频同步参数
-            .setAudioOffloadEnabled(false) // 禁用音频卸载，避免可能的同步问题
-            .setHandleAudioBecomingNoisy(true) // 处理音频中断
-            .build()
+            
+        // 创建播放器
+        mPlayer = builder.build()
 
         // 设置音视频同步参数
         mPlayer?.setSkipSilenceEnabled(false) // 禁用跳过静音，以保持音频连续性
         mPlayer?.setVideoScalingMode(C.VIDEO_SCALING_MODE_SCALE_TO_FIT) // 设置视频缩放模式
-        
-        // 启用音视频同步调整
-        mPlayer?.experimentalSetOffloadSchedulingEnabled(false) // 禁用音频卸载调度
         
         // 设置最大缓冲区大小
         mPlayer?.setVideoSurfaceView(null)
@@ -193,20 +188,21 @@ class ExoMediaPlayer(
             }
 
             val mediaSources = listOfNotNull(videoMediaSource, audioMediaSource)
-            // 修改MergingMediaSource的构造，添加adjustPeriodTimeOffsets和clipDurations参数
-            // 这两个参数可以确保音视频流同时开始和结束，有助于保持同步
-            mMediaSource = MergingMediaSource(
-                /* adjustPeriodTimeOffsets= */ true,
-                /* clipDurations= */ true,
-                *mediaSources.toTypedArray()
-            )
+            // 使用标准的MergingMediaSource构造方法
+            if (mediaSources.size == 2) {
+                mMediaSource = MergingMediaSource(mediaSources[0], mediaSources[1])
+            } else if (mediaSources.isNotEmpty()) {
+                mMediaSource = mediaSources[0]
+            }
         }
     }
 
     @OptIn(UnstableApi::class)
     override fun prepare() {
-        mPlayer?.setMediaSource(mMediaSource!!)
-        mPlayer?.prepare()
+        mMediaSource?.let {
+            mPlayer?.setMediaSource(it)
+            mPlayer?.prepare()
+        }
     }
 
     override fun start() {
