@@ -108,12 +108,8 @@ class ExoMediaPlayer(
     @OptIn(UnstableApi::class)
     override fun initPlayer() {
         val renderersFactory = DefaultRenderersFactory(context).apply {
-            setExtensionRendererMode(
-                when (options.enableFfmpegAudioRenderer) {
-                    true -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
-                    false -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
-                }
-            )
+            // 使用标准的扩展渲染器模式，不直接引用ffmpeg
+            setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
         }
         
         // 创建自定义LoadControl以优化缓冲策略

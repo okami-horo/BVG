@@ -101,7 +101,8 @@ dependencies {
     api("androidx.media3:media3-common:$media3Version")
 
     // ffmpeg extension
-    api("androidx.media3:media3-decoder-ffmpeg:$media3Version")
+    api("androidx.media3:media3-effect:$media3Version")
+    api("androidx.media3:media3-transformer:$media3Version")
     
     // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
