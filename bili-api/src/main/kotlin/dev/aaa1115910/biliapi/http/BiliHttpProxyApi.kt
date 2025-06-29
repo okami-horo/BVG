@@ -1,21 +1,8 @@
 package dev.aaa1115910.biliapi.http
 
-import dev.aaa1115910.biliapi.entity.ApiType
-import dev.aaa1115910.biliapi.entity.CodeType
-import dev.aaa1115910.biliapi.entity.PlayData
-import dev.aaa1115910.biliapi.entity.danmaku.DanmakuMask
-import dev.aaa1115910.biliapi.entity.danmaku.DanmakuMaskType
 import dev.aaa1115910.biliapi.http.entity.BiliResponse
-import dev.aaa1115910.biliapi.http.entity.danmaku.DanmakuSegmentIndex
-import dev.aaa1115910.biliapi.http.entity.danmaku.DanmakuView
-import dev.aaa1115910.biliapi.http.entity.proxy.ProxyPlayUrlData
-import dev.aaa1115910.biliapi.http.entity.proxy.ProxySubtitleData
-import dev.aaa1115910.biliapi.http.entity.proxy.ProxyVideoDetailData
-import dev.aaa1115910.biliapi.http.entity.proxy.ProxyVideoMoreInfo
-import dev.aaa1115910.biliapi.http.entity.subtitle.SubtitleData
+import dev.aaa1115910.biliapi.http.entity.search.SearchResultData
 import dev.aaa1115910.biliapi.http.entity.video.PlayUrlData
-import dev.aaa1115910.biliapi.http.entity.video.VideoDetailData
-import dev.aaa1115910.biliapi.http.entity.video.VideoMoreInfo
 import dev.aaa1115910.biliapi.http.util.encApiSign
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
