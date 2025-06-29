@@ -219,10 +219,12 @@ dependencies {
     implementation(libs.slf4j.android.mvysny)
     
     // OkHttp 限制连接池大小，解决okio.Segment内存问题
-    implementation("com.squareup.okhttp3:okhttp:4.11.0") {
-        // 强制使用这个版本，避免其他依赖引入不同版本
-        isForce = true
+    configurations.all {
+        resolutionStrategy {
+            force("com.squareup.okhttp3:okhttp:4.11.0")
+        }
     }
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
     
     // 腾讯Bugly SDK
     implementation("com.tencent.bugly:crashreport:latest.release")
