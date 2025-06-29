@@ -50,6 +50,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.ConnectionPool
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
+import java.util.concurrent.TimeUnit
 
 class PlayerViewModel(
     private val videoInfoRepository: VideoInfoRepository
@@ -423,15 +424,14 @@ class PlayerViewModel(
         .connectionPool(ConnectionPool(
             maxIdleConnections = 3,
             keepAliveDuration = 30,
-            timeUnit = java.util.concurrent.TimeUnit.SECONDS
+            timeUnit = TimeUnit.SECONDS
         ))
         .protocols(listOf(Protocol.HTTP_1_1, Protocol.HTTP_2))
-        .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
-        .readTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
-        .writeTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(15, TimeUnit.SECONDS)
+        .writeTimeout(15, TimeUnit.SECONDS)
         .retryOnConnectionFailure(true)
         .build()
-    }
 
     enum class RequestState {
         Ready, Doing, Done, Success, Failed
