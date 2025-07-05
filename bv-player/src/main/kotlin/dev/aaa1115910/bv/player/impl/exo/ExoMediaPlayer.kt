@@ -236,7 +236,9 @@ class ExoMediaPlayer(
                 playUrl(currentVideoUrl, currentAudioUrl)
                 prepare()
                 start()
-                mPlayerEventListener?.onInfo("正在尝试第${retryCount}次重连...")
+                // 使用onBuffering代替不存在的onInfo方法
+                mPlayerEventListener?.onBuffering()
+                // 或者直接不发送消息，因为接口中没有合适的方法
             }
         } else {
             // 达到最大重试次数，通知错误
