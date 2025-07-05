@@ -12,9 +12,11 @@ import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.Renderer
+import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.MergingMediaSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import androidx.media3.exoplayer.video.VideoRendererEventListener
 import dev.aaa1115910.bv.player.AbstractVideoPlayer
 import dev.aaa1115910.bv.player.OkHttpUtil
 import dev.aaa1115910.bv.player.VideoPlayerOptions
@@ -23,6 +25,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import android.os.Handler
 
 @OptIn(UnstableApi::class)
 class ExoMediaPlayer(
@@ -68,7 +71,7 @@ class ExoMediaPlayer(
                 ) {
                     super.buildVideoRenderers(
                         context,
-                        C.EXTENSION_RENDERER_MODE_OFF,
+                        DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF,
                         mediaCodecSelector,
                         enableDecoderFallback,
                         handler,
