@@ -68,7 +68,7 @@ class ExoMediaPlayer(
             .setSeekForwardIncrementMs(1000 * 10)
             .setSeekBackIncrementMs(1000 * 5)
             // 设置音视频同步参数
-            .setAudioOffloadEnabled(false) // 禁用音频卸载，避免可能的同步问题
+            // .setAudioOffloadEnabled(false) // 禁用音频卸载，避免可能的同步问题 - 已移除，不兼容当前版本
             .setHandleAudioBecomingNoisy(true) // 处理音频中断
             .build()
 
@@ -225,41 +225,22 @@ class ExoMediaPlayer(
         get() = mPlayer?.videoSize?.height ?: 0
 
     override fun onPlayerError(error: PlaybackException) {
-        // 检查是否是HTTP相关错误
-        val shouldRetry = when (error.errorCode) {
-            // 处理HTTP错误，包括403 Forbidden
-            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
-            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT,
-            PlaybackException.ERROR_CODE_IO_INVALID_HTTP_CONTENT_TYPE,
-            PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS -> {
-                // 检查HTTP状态码是否为403
-                val isHttp403 = error.message?.contains("403") == true
-                isHttp403 || retryCount < maxRetryCount
-            }
-            else -> false
-        }
-
-        if (shouldRetry && retryCount < maxRetryCount) {
+        super.onPlayerError(error)
+        
+        // 实现重试逻辑
+        if (retryCount < maxRetryCount) {
             retryCount++
-            val position = currentPosition
-            retryPlayback(position)
+            CoroutineScope(Dispatchers.Main).launch {
+                delay(retryDelayMs)
+                // 重新播放
+                playUrl(currentVideoUrl, currentAudioUrl)
+                prepare()
+                start()
+                mPlayerEventListener?.onInfo("正在尝试第${retryCount}次重连...")
+            }
         } else {
-            // 重试失败或不需要重试时，通知错误
+            // 达到最大重试次数，通知错误
             mPlayerEventListener?.onError(error)
-        }
-    }
-    
-    /**
-     * 静默重试播放，不通知用户
-     * @param position 重试时要恢复的播放位置
-     */
-    private fun retryPlayback(position: Long) {
-        CoroutineScope(Dispatchers.Main).launch {
-            delay(retryDelayMs)
-            playUrl(currentVideoUrl, currentAudioUrl)
-            prepare()
-            seekTo(position)
-            start()
         }
     }
 }
