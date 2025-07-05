@@ -107,12 +107,9 @@ class ExoMediaPlayer(
         }
 
         val mediaSources = listOfNotNull(videoMediaSource, audioMediaSource)
-        // 修改MergingMediaSource的构造，添加adjustPeriodTimeOffsets和clipDurations参数
-        // 这两个参数可以确保音视频流同时开始和结束，有助于保持同步
+        // MergingMediaSource 的 isAtomic 参数可以确保音视频流同步进行各种操作，有助于保持同步
         mMediaSource = MergingMediaSource(
             /* isAtomic= */ true,
-            /* adjustPeriodTimeOffsets= */ true,
-            /* clipDurations= */ true,
             *mediaSources.toTypedArray()
         )
     }
