@@ -64,13 +64,14 @@ fun RecommendScreen(
         gridItems(
             data = recommendViewModel.recommendVideoList,
             columnCount = 4,
+            key = { it.aid },
             modifier = Modifier
                 .width(880.dp)
                 .padding(horizontal = 24.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(24.dp),
             itemContent = { index, item ->
-                SmallVideoCard(
-                    data = VideoCardData(
+                val videoCardData = remember(item) {
+                    VideoCardData(
                         avid = item.aid,
                         title = item.title,
                         cover = item.cover,
@@ -78,7 +79,11 @@ fun RecommendScreen(
                         danmaku = with(item.danmaku) { if (this == -1) null else this },
                         upName = item.author,
                         time = item.duration * 1000L
-                    ),
+                    )
+                }
+                
+                SmallVideoCard(
+                    data = videoCardData,
                     onClick = { onClickVideo(item) },
                     onFocus = { currentFocusedIndex = index }
                 )

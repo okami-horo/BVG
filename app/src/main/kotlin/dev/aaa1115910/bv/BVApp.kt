@@ -7,6 +7,11 @@ import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
+import coil.ImageLoader
+import coil.ImageLoaderFactory
+import coil.disk.DiskCache
+import coil.memory.MemoryCache
+import coil.request.CachePolicy
 import de.schnettler.datastore.manager.DataStoreManager
 import dev.aaa1115910.biliapi.http.BiliHttpProxyApi
 import dev.aaa1115910.biliapi.repositories.AuthRepository
@@ -67,7 +72,7 @@ import org.koin.core.logger.Level
 import org.koin.dsl.module
 import org.slf4j.impl.HandroidLoggerAdapter
 
-class BVApp : Application() {
+class BVApp : Application(), ImageLoaderFactory {
     companion object {
         @SuppressLint("StaticFieldLeak")
         lateinit var context: Context
@@ -95,6 +100,30 @@ class BVApp : Application() {
         instance = this
         updateMigration()
         HttpServer.startServer()
+    }
+
+    // 实现ImageLoaderFactory接口，提供优化的Coil图片加载器配置
+    override fun newImageLoader(): ImageLoader {
+        return ImageLoader.Builder(this)
+            .memoryCache {
+                // 使用更少的内存，避免OOM
+                MemoryCache.Builder(this)
+                    .maxSizePercent(0.25) // 使用25%的可用内存
+                    .build()
+            }
+            .diskCache {
+                // 配置磁盘缓存
+                DiskCache.Builder()
+                    .directory(cacheDir.resolve("image_cache"))
+                    .maxSizePercent(0.05) // 使用5%的可用磁盘空间
+                    .build()
+            }
+            .respectCacheHeaders(false) // 忽略服务器缓存控制头
+            .crossfade(true) // 启用淡入淡出效果
+            .diskCachePolicy(CachePolicy.ENABLED)
+            .memoryCachePolicy(CachePolicy.ENABLED)
+            .networkCachePolicy(CachePolicy.ENABLED)
+            .build()
     }
 
     fun initRepository() {

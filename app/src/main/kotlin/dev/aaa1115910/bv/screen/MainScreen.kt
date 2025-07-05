@@ -128,17 +128,18 @@ fun MainScreen(
     // 当UI准备好且selectedDrawerItem改变时请求焦点
     LaunchedEffect(isUiReady, selectedDrawerItem) {
         if (isUiReady) {
-            onFocusToContent()
-        }
-    }
-
-    // 初始化焦点 - 替代之前的延迟300ms方式
-    LaunchedEffect(isUiReady) {
-        if (isUiReady) {
+            // 合并焦点请求逻辑
             runCatching {
-                focusManager.requestFocus(mainFocusRequester)
+                when (selectedDrawerItem) {
+                    DrawerItem.Home -> focusManager.requestFocus(mainFocusRequester)
+                    DrawerItem.UGC -> focusManager.requestFocus(ugcFocusRequester)
+                    DrawerItem.PGC -> focusManager.requestFocus(pgcFocusRequester)
+                    DrawerItem.Search -> focusManager.requestFocus(searchFocusRequester)
+                    DrawerItem.History -> focusManager.requestFocus(historyFocusRequester)
+                    else -> {}
+                }
             }.getOrElse {
-                logger.fException(it) { "request default focus requester failed" }
+                logger.fException(it) { "request focus requester in drawer item changed failed" }
             }
         }
     }

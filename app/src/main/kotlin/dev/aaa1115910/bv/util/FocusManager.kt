@@ -54,7 +54,7 @@ class SafeFocusManager(private val scope: CoroutineScope) {
         if (pendingFocusRequests.isEmpty()) return
         
         logger.debug { "Processing ${pendingFocusRequests.size} pending focus requests" }
-        scope.launch(Dispatchers.Main) {
+        scope.launch(Dispatchers.Main.immediate) {
             // 只处理最后一个焦点请求，因为用户可能已经切换了多次页面
             val lastRequester = pendingFocusRequests.last()
             processFocusRequest(lastRequester)
@@ -64,32 +64,27 @@ class SafeFocusManager(private val scope: CoroutineScope) {
     
     /**
      * 执行焦点请求
+     * 优化版本：使用immediate调度器减少延迟，并减少重试延迟时间
      */
     private fun processFocusRequest(focusRequester: FocusRequester) {
-        // 创建本地函数避免递归调用问题
-        fun doRequestFocus() {
-            scope.launch(Dispatchers.Main) {
-                runCatching { 
-                    focusRequester.requestFocus()
-                    logger.debug { "Focus request successful" }
-                }.onFailure { e ->
-                    logger.debug(e) { "Focus request failed, will retry once" }
-                    // 失败后等待100ms再次尝试
-                    withContext(Dispatchers.Main) {
-                        kotlinx.coroutines.delay(100)
-                        runCatching {
-                            focusRequester.requestFocus()
-                            logger.debug { "Retry focus request successful" }
-                        }.onFailure { retryError ->
-                            logger.debug(retryError) { "Retry focus request failed" }
-                        }
+        scope.launch(Dispatchers.Main.immediate) { // 使用immediate调度器减少延迟
+            runCatching { 
+                focusRequester.requestFocus()
+                logger.debug { "Focus request successful" }
+            }.onFailure { e ->
+                logger.debug(e) { "Focus request failed, will retry once" }
+                // 使用延迟较短的重试，并避免阻塞UI线程
+                scope.launch(Dispatchers.Main.immediate) {
+                    kotlinx.coroutines.delay(50) // 减少重试延迟时间
+                    runCatching {
+                        focusRequester.requestFocus()
+                        logger.debug { "Retry focus request successful" }
+                    }.onFailure { retryError ->
+                        logger.debug(retryError) { "Retry focus request failed" }
                     }
                 }
             }
         }
-        
-        // 执行本地函数
-        doRequestFocus()
     }
 }
 

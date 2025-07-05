@@ -1,6 +1,7 @@
 package dev.aaa1115910.bv.component.videocard
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -27,6 +28,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -37,6 +39,8 @@ import androidx.tv.material3.Surface
 import androidx.tv.material3.SurfaceDefaults
 import androidx.tv.material3.Text
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import coil.size.Scale
 import dev.aaa1115910.bv.component.UpIcon
 import dev.aaa1115910.bv.entity.carddata.VideoCardData
 import dev.aaa1115910.bv.ui.theme.BVTheme
@@ -50,10 +54,12 @@ fun LargeVideoCard(
     onFocus: () -> Unit = {}
 ) {
     val view = LocalView.current
+    val context = LocalContext.current
 
     var hasFocus by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
         targetValue = if (hasFocus) 1f else 0.95f,
+        animationSpec = tween(durationMillis = 100),
         label = "large video card scale"
     )
 
@@ -84,7 +90,12 @@ fun LargeVideoCard(
                             .fillMaxHeight()
                             .aspectRatio(1.6f)
                             .clip(MaterialTheme.shapes.large),
-                        model = data.cover,
+                        model = ImageRequest.Builder(context)
+                            .data(data.cover)
+                            .crossfade(true)
+                            .memoryCacheKey(data.cover)
+                            .scale(Scale.FILL)
+                            .build(),
                         contentDescription = null,
                         contentScale = ContentScale.FillBounds
                     )
