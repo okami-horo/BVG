@@ -54,14 +54,37 @@ class ExoMediaPlayer(
 
     @OptIn(UnstableApi::class)
     override fun initPlayer() {
-        val renderersFactory = DefaultRenderersFactory(context).apply {
-            setExtensionRendererMode(
-                when (options.enableFfmpegAudioRenderer) {
-                    true -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
-                    false -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
+        val renderersFactory =
+            object : DefaultRenderersFactory(context) {
+                override fun buildVideoRenderers(
+                    context: Context,
+                    extensionRendererMode: Int,
+                    mediaCodecSelector: MediaCodecSelector,
+                    enableDecoderFallback: Boolean,
+                    handler: Handler,
+                    eventListener: VideoRendererEventListener,
+                    maxVideoFrameDurationMs: Long,
+                    out: ArrayList<Renderer>
+                ) {
+                    super.buildVideoRenderers(
+                        context,
+                        C.EXTENSION_RENDERER_MODE_OFF,
+                        mediaCodecSelector,
+                        enableDecoderFallback,
+                        handler,
+                        eventListener,
+                        maxVideoFrameDurationMs,
+                        out
+                    )
                 }
-            )
-        }
+            }.apply {
+                setExtensionRendererMode(
+                    when (options.enableFfmpegAudioRenderer) {
+                        true -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
+                        false -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
+                    }
+                )
+            }
         mPlayer = ExoPlayer
             .Builder(context)
             .setRenderersFactory(renderersFactory)
