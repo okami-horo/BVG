@@ -48,6 +48,7 @@ fun SmallVideoCard(
     modifier: Modifier = Modifier,
     data: VideoCardData,
     onClick: () -> Unit = {},
+    onLongClick: () -> Unit = {},
     onFocus: () -> Unit = {}
 ) {
     val view = LocalView.current

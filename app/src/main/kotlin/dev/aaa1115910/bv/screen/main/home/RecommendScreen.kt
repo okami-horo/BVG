@@ -64,7 +64,7 @@ fun RecommendScreen(
         gridItems(
             data = recommendViewModel.recommendVideoList,
             columnCount = 4,
-            key = { it.aid },
+            key = { it.avid },
             modifier = Modifier
                 .width(880.dp)
                 .padding(horizontal = 24.dp, vertical = 12.dp),
