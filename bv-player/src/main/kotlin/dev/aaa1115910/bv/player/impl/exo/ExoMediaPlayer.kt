@@ -27,6 +27,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import android.os.Handler
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
 
 @OptIn(UnstableApi::class)
 class ExoMediaPlayer(
@@ -35,6 +38,9 @@ class ExoMediaPlayer(
 ) : AbstractVideoPlayer(), Player.Listener {
     var mPlayer: ExoPlayer? = null
     protected var mMediaSource: MediaSource? = null
+    
+    // 当播放器实例重建时，该值会增加，用于通知 Compose UI 更新
+    var playerInstanceId by mutableIntStateOf(0)
     
     // 保存当前播放的URL以便重试
     private var currentVideoUrl: String? = null
@@ -58,6 +64,9 @@ class ExoMediaPlayer(
 
     @OptIn(UnstableApi::class)
     override fun initPlayer() {
+        //重建播放器前，先释放旧的实例
+        mPlayer?.release()
+
         val renderersFactory =
             object : DefaultRenderersFactory(context) {
                 override fun buildVideoRenderers(
@@ -104,6 +113,9 @@ class ExoMediaPlayer(
         mPlayer?.setVideoScalingMode(C.VIDEO_SCALING_MODE_SCALE_TO_FIT) // 设置视频缩放模式
 
         initListener()
+
+        // 增加此值以触发UI更新
+        playerInstanceId++
     }
 
     private fun initListener() {
@@ -260,34 +272,16 @@ class ExoMediaPlayer(
     override fun onPlayerError(error: PlaybackException) {
         super.onPlayerError(error)
 
-        // 获取错误发生时的播放位置
         val lastPosition = currentPosition
 
-        // 检查是否是 403 错误
-        val cause = findCause(error)
-        if (cause is HttpDataSource.InvalidResponseCodeException && cause.responseCode == 403) {
-            if (retryCount < maxRetryCount) {
-                retryCount++
-                CoroutineScope(Dispatchers.Main).launch {
-                    delay(retryDelayMs)
-                    // 对于 403 错误，尝试 seek
-                    mPlayer?.seekTo(lastPosition)
-                    mPlayer?.prepare()
-                    mPlayer?.play()
-                    mPlayerEventListener?.onBuffering()
-                }
-            } else {
-                // 达到最大重试次数，通知错误
-                mPlayerEventListener?.onError(error)
-            }
-            return
-        }
-
-        // 对于其他错误，使用通用重试逻辑
         if (retryCount < maxRetryCount) {
             retryCount++
             CoroutineScope(Dispatchers.Main).launch {
                 delay(retryDelayMs)
+
+                // 释放并重建播放器
+                initPlayer()
+
                 // 重新创建媒体源
                 val videoMediaSource = currentVideoUrl?.let {
                     ProgressiveMediaSource.Factory(dataSourceFactory)
@@ -309,7 +303,7 @@ class ExoMediaPlayer(
                 mPlayer?.prepare()
                 mPlayer?.play()
 
-                // 通知UI正在缓冲，UI上会显示“缓冲中”
+                // 通知UI正在缓冲
                 mPlayerEventListener?.onBuffering()
             }
         } else {

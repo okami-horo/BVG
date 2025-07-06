@@ -34,16 +34,22 @@ fun BvVideoPlayer(
 
     when (videoPlayer) {
         is ExoMediaPlayer -> {
-            var videoPlayerView: PlayerView? by remember { mutableStateOf(null) }
+            // 订阅播放器实例ID，当播放器重建时，这里会得到通知并触发重组
+            val playerInstanceId = videoPlayer.playerInstanceId
+
             AndroidView(
                 modifier = modifier.fillMaxSize(),
                 factory = { ctx ->
-                    videoPlayerView = PlayerView(ctx).apply {
-                        player = videoPlayer.mPlayer
-                        resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
+                    PlayerView(ctx).apply {
                         useController = false
+                        resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
                     }
-                    videoPlayerView!!
+                },
+                update = { view ->
+                    // 每次重组时（包括播放器重建后），都将最新的播放器实例设置给PlayerView
+                    if (playerInstanceId > 0) {
+                        view.player = videoPlayer.mPlayer
+                    }
                 }
             )
         }
