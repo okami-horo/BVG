@@ -8,6 +8,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
@@ -248,13 +249,41 @@ class ExoMediaPlayer(
     override val videoHeight: Int
         get() = mPlayer?.videoSize?.height ?: 0
 
+    private fun findCause(throwable: Throwable): Throwable {
+        var cause: Throwable? = throwable
+        while (cause?.cause != null) {
+            cause = cause.cause
+        }
+        return cause ?: throwable
+    }
+
     override fun onPlayerError(error: PlaybackException) {
         super.onPlayerError(error)
 
         // 获取错误发生时的播放位置
         val lastPosition = currentPosition
 
-        // 实现重试逻辑
+        // 检查是否是 403 错误
+        val cause = findCause(error)
+        if (cause is HttpDataSource.InvalidResponseCodeException && cause.responseCode == 403) {
+            if (retryCount < maxRetryCount) {
+                retryCount++
+                CoroutineScope(Dispatchers.Main).launch {
+                    delay(retryDelayMs)
+                    // 对于 403 错误，尝试 seek
+                    mPlayer?.seekTo(lastPosition)
+                    mPlayer?.prepare()
+                    mPlayer?.play()
+                    mPlayerEventListener?.onBuffering()
+                }
+            } else {
+                // 达到最大重试次数，通知错误
+                mPlayerEventListener?.onError(error)
+            }
+            return
+        }
+
+        // 对于其他错误，使用通用重试逻辑
         if (retryCount < maxRetryCount) {
             retryCount++
             CoroutineScope(Dispatchers.Main).launch {
