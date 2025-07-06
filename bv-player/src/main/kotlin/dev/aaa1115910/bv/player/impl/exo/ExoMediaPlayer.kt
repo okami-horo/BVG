@@ -250,19 +250,38 @@ class ExoMediaPlayer(
 
     override fun onPlayerError(error: PlaybackException) {
         super.onPlayerError(error)
-        
+
+        // 获取错误发生时的播放位置
+        val lastPosition = currentPosition
+
         // 实现重试逻辑
         if (retryCount < maxRetryCount) {
             retryCount++
             CoroutineScope(Dispatchers.Main).launch {
                 delay(retryDelayMs)
-                // 重新播放
-                playUrl(currentVideoUrl, currentAudioUrl)
-                prepare()
-                start()
-                // 使用onBuffering代替不存在的onInfo方法
+                // 重新创建媒体源
+                val videoMediaSource = currentVideoUrl?.let {
+                    ProgressiveMediaSource.Factory(dataSourceFactory)
+                        .createMediaSource(MediaItem.fromUri(it))
+                }
+                val audioMediaSource = currentAudioUrl?.let {
+                    ProgressiveMediaSource.Factory(dataSourceFactory)
+                        .createMediaSource(MediaItem.fromUri(it))
+                }
+
+                val mediaSources = listOfNotNull(videoMediaSource, audioMediaSource)
+                mMediaSource = MergingMediaSource(
+                    /* isAtomic= */ true,
+                    *mediaSources.toTypedArray()
+                )
+
+                // 重新设置媒体源，并直接跳转到记录的位置
+                mPlayer?.setMediaSource(mMediaSource!!, lastPosition)
+                mPlayer?.prepare()
+                mPlayer?.play()
+
+                // 通知UI正在缓冲，UI上会显示“缓冲中”
                 mPlayerEventListener?.onBuffering()
-                // 或者直接不发送消息，因为接口中没有合适的方法
             }
         } else {
             // 达到最大重试次数，通知错误
