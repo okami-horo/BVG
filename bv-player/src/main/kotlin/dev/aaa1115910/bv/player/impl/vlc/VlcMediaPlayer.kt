@@ -341,4 +341,75 @@ class VlcMediaPlayer(
     private fun resetRetryCount() {
         retryCount = 0
     }
+
+    /**
+     * MediaPlayer.EventListener 实现
+     */
+    override fun onEvent(event: MediaPlayer.Event) {
+        when (event.type) {
+            MediaPlayer.Event.Opening -> {
+                // 媒体开始打开
+                mPlayerEventListener?.onBuffering()
+            }
+
+            MediaPlayer.Event.Buffering -> {
+                // 缓冲中
+                mPlayerEventListener?.onBuffering()
+            }
+
+            MediaPlayer.Event.Playing -> {
+                // 开始播放
+                isPlayerPlaying = true
+                mPlayerEventListener?.onPlay()
+            }
+
+            MediaPlayer.Event.Paused -> {
+                // 暂停
+                isPlayerPlaying = false
+                mPlayerEventListener?.onPause()
+            }
+
+            MediaPlayer.Event.Stopped -> {
+                // 停止
+                isPlayerPlaying = false
+                mPlayerEventListener?.onPause()
+            }
+
+            MediaPlayer.Event.EndReached -> {
+                // 播放结束
+                isPlayerPlaying = false
+                mPlayerEventListener?.onEnd()
+            }
+
+            MediaPlayer.Event.EncounteredError -> {
+                // 播放错误，尝试重试
+                isPlayerPlaying = false
+                handlePlaybackError()
+            }
+
+            MediaPlayer.Event.Vout -> {
+                // 视频输出事件，表示准备就绪
+                if (event.voutCount > 0) {
+                    // 设置默认视频尺寸
+                    _videoWidth = 1920
+                    _videoHeight = 1080
+                    mPlayerEventListener?.onReady()
+                }
+            }
+
+            MediaPlayer.Event.LengthChanged -> {
+                // 时长变化
+                totalDuration = event.lengthChanged
+            }
+
+            MediaPlayer.Event.TimeChanged -> {
+                // 时间变化
+                currentPos = event.timeChanged
+            }
+
+            else -> {
+                // 其他事件暂不处理
+            }
+        }
+    }
 }
