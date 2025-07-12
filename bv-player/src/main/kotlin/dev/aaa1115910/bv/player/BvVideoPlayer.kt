@@ -70,7 +70,7 @@ fun BvVideoPlayer(
                     if (playerInstanceId > 0) {
                         videoPlayer.vlcVideoLayout = vlcVideoLayout
                         // 使用VLC的正确API附加视图
-                        videoPlayer.mPlayer?.attachViews(vlcVideoLayout, null, false, false)
+                        videoPlayer.mPlayer?.vlcVout?.setVideoView(vlcVideoLayout)
                     }
                 }
             )
