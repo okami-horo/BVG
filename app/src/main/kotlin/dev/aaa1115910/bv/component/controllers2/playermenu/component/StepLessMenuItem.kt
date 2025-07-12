@@ -10,8 +10,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.ArrowDropUp
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusable
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -30,9 +36,13 @@ fun StepLessMenuItem(
     onValueChange: (Float) -> Unit,
     onFocusBackToParent: () -> Unit
 ) {
+    var hasFocus by remember { mutableStateOf(false) }
+
     Column(
         modifier = modifier
             .fillMaxHeight()
+            .focusable()
+            .onFocusChanged { hasFocus = it.hasFocus }
             .onPreviewKeyEvent {
                 println("StepLessMenuItem KeyEvent: ${it.key}, type: ${it.type}")
                 when (it.key) {
@@ -58,7 +68,7 @@ fun StepLessMenuItem(
                         return@onPreviewKeyEvent true
                     }
 
-                    Key.DirectionRight -> {
+                    Key.DirectionLeft, Key.DirectionRight -> {
                         if (it.type == KeyEventType.KeyUp) return@onPreviewKeyEvent true
                         onFocusBackToParent()
                         return@onPreviewKeyEvent true
@@ -74,7 +84,7 @@ fun StepLessMenuItem(
         MenuListItem(
             modifier = Modifier.fillMaxWidth(),
             text = text,
-            selected = false
+            selected = hasFocus
         ) { }
         Icon(imageVector = Icons.Rounded.ArrowDropDown, contentDescription = null)
     }
@@ -90,9 +100,13 @@ fun StepLessMenuItem(
     onValueChange: (Int) -> Unit,
     onFocusBackToParent: () -> Unit
 ) {
+    var hasFocus by remember { mutableStateOf(false) }
+
     Column(
         modifier = modifier
             .fillMaxHeight()
+            .focusable()
+            .onFocusChanged { hasFocus = it.hasFocus }
             .onPreviewKeyEvent {
                 println("StepLessMenuItem Int KeyEvent: ${it.key}, type: ${it.type}")
                 when (it.key) {
@@ -118,7 +132,7 @@ fun StepLessMenuItem(
                         return@onPreviewKeyEvent true
                     }
 
-                    Key.DirectionRight -> {
+                    Key.DirectionLeft, Key.DirectionRight -> {
                         if (it.type == KeyEventType.KeyUp) return@onPreviewKeyEvent true
                         onFocusBackToParent()
                         return@onPreviewKeyEvent true
@@ -134,7 +148,7 @@ fun StepLessMenuItem(
         MenuListItem(
             modifier = Modifier.fillMaxWidth(),
             text = text,
-            selected = false
+            selected = hasFocus
         ) { }
         Icon(imageVector = Icons.Rounded.ArrowDropDown, contentDescription = null)
     }
