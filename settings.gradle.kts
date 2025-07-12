@@ -13,6 +13,8 @@ dependencyResolutionManagement {
         maven("https://jitpack.io")
         maven("https://repo1.maven.org/maven2/")
         maven("https://androidx.dev/storage/compose-compiler/repository/")
+        // VLC Android库的Maven仓库
+        maven("https://download.videolan.org/pub/maven2/")
         //maven("https://artifact.bytedance.com/repository/releases/")
     }
     versionCatalogs {
