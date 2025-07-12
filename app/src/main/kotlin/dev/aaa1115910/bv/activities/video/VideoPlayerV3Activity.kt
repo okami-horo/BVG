@@ -96,7 +96,8 @@ class VideoPlayerV3Activity : ComponentActivity() {
                 ApiType.Web -> getString(R.string.video_player_referer)
                 ApiType.App -> null
             },
-            enableFfmpegAudioRenderer = Prefs.enableFfmpegAudioRenderer
+            enableFfmpegAudioRenderer = Prefs.enableFfmpegAudioRenderer,
+            audioDelayMs = Prefs.defaultAudioDelayMs
         )
         val videoPlayer = when (Prefs.playerType) {
             PlayerType.Media3 -> ExoPlayerFactory().create(this, options)

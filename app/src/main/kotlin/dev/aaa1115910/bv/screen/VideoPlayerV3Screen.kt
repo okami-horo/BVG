@@ -443,6 +443,7 @@ fun VideoPlayerV3Screen(
             currentVideoAspectRatio = currentVideoAspectRatio,
             currentVideoSpeed = currentPlaySpeed,
             currentAudio = playerViewModel.currentAudio,
+            currentAudioDelayMs = playerViewModel.videoPlayer?.audioDelayMs ?: 0L,
             currentDanmakuEnabled = playerViewModel.currentDanmakuEnabled,
             currentDanmakuEnabledList = playerViewModel.currentDanmakuTypes,
             currentDanmakuScale = playerViewModel.currentDanmakuScale,
@@ -567,6 +568,11 @@ fun VideoPlayerV3Screen(
                         videoPlayer.start()
                     }
                 }
+            },
+            onAudioSyncChange = { delayMs ->
+                logger.info { "Set audio delay: ${delayMs}ms" }
+                videoPlayer.audioDelayMs = delayMs
+                Prefs.defaultAudioDelayMs = delayMs
             },
             onDanmakuSwitchChange = { enabledDanmakuTypes ->
                 logger.info { "On enabled danmaku type change: $enabledDanmakuTypes" }

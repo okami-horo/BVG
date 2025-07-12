@@ -72,6 +72,7 @@ fun MenuController(
     onAspectRatioChange: (VideoAspectRatio) -> Unit,
     onPlaySpeedChange: (Float) -> Unit = {},
     onAudioChange: (Audio) -> Unit,
+    onAudioSyncChange: (Long) -> Unit = {},
     onDanmakuSwitchChange: (List<DanmakuType>) -> Unit,
     onDanmakuSizeChange: (Float) -> Unit,
     onDanmakuOpacityChange: (Float) -> Unit,
@@ -131,6 +132,7 @@ fun MenuController(
     onAspectRatioChange: (VideoAspectRatio) -> Unit,
     onPlaySpeedChange: (Float) -> Unit,
     onAudioChange: (Audio) -> Unit,
+    onAudioSyncChange: (Long) -> Unit = {},
     onDanmakuSwitchChange: (List<DanmakuType>) -> Unit,
     onDanmakuSizeChange: (Float) -> Unit,
     onDanmakuOpacityChange: (Float) -> Unit,
@@ -209,6 +211,7 @@ private fun MenuList(
     onAspectRatioChange: (VideoAspectRatio) -> Unit,
     onPlaySpeedChange: (Float) -> Unit,
     onAudioChange: (Audio) -> Unit,
+    onAudioSyncChange: (Long) -> Unit,
     onDanmakuSwitchChange: (List<DanmakuType>) -> Unit,
     onDanmakuSizeChange: (Float) -> Unit,
     onDanmakuOpacityChange: (Float) -> Unit,
@@ -232,6 +235,7 @@ private fun MenuList(
                     onAspectRatioChange = onAspectRatioChange,
                     onPlaySpeedChange = onPlaySpeedChange,
                     onAudioChange = onAudioChange,
+                    onAudioSyncChange = onAudioSyncChange,
                     onFocusStateChange = onFocusStateChange
                 )
             }
@@ -274,7 +278,8 @@ enum class VideoPlayerPictureMenuItem(private val strRes: Int) {
     Codec(R.string.video_player_menu_picture_codec),
     AspectRatio(R.string.video_player_menu_picture_aspect_ratio),
     PlaySpeed(R.string.video_player_menu_picture_play_speed),
-    Audio(R.string.video_player_menu_picture_audio);
+    Audio(R.string.video_player_menu_picture_audio),
+    AudioSync(R.string.video_player_menu_picture_audio_sync);
 
     fun getDisplayName(context: Context) = context.getString(strRes)
 }

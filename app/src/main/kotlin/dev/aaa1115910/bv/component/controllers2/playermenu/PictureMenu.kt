@@ -48,6 +48,7 @@ fun PictureMenuList(
     onAspectRatioChange: (VideoAspectRatio) -> Unit,
     onPlaySpeedChange: (Float) -> Unit,
     onAudioChange: (Audio) -> Unit,
+    onAudioSyncChange: (Long) -> Unit = {},
     onFocusStateChange: (MenuFocusState) -> Unit
 ) {
     val context = LocalContext.current
@@ -133,6 +134,16 @@ fun PictureMenuList(
                         onFocusStateChange(MenuFocusState.Menu)
                         focusRequester.requestFocus()
                     }
+                )
+
+                VideoPlayerPictureMenuItem.AudioSync -> StepLessMenuItem(
+                    modifier = menuItemsModifier,
+                    value = data.currentAudioDelayMs.toFloat(),
+                    step = 50f,
+                    range = -1000f..1000f,
+                    text = "${data.currentAudioDelayMs}ms",
+                    onValueChange = { onAudioSyncChange(it.toLong()) },
+                    onFocusBackToParent = { onFocusStateChange(MenuFocusState.Menu) }
                 )
             }
         }

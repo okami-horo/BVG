@@ -482,6 +482,7 @@ data class VideoPlayerControllerData(
     val currentVideoAspectRatio: VideoAspectRatio = VideoAspectRatio.Default,
     val currentVideoSpeed: Float = 1f,
     val currentAudio: Audio = Audio.A192K,
+    val currentAudioDelayMs: Long = 0L,
     val currentDanmakuEnabled: Boolean = true,
     val currentDanmakuEnabledList: List<DanmakuType> = listOf(),
     val currentDanmakuSize: DanmakuSize = DanmakuSize.S2,

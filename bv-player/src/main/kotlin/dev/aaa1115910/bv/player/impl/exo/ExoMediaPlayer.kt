@@ -51,6 +51,10 @@ class ExoMediaPlayer(
     private val maxRetryCount = 3
     private val retryDelayMs = 500L // 重试间隔时间，单位ms
 
+    // 音频延迟相关属性
+    private var _audioDelayMs: Long = options.audioDelayMs
+    private var audioDelayProcessor: AudioDelayProcessor? = null
+
     @OptIn(UnstableApi::class)
     private val dataSourceFactory =
         OkHttpDataSource.Factory(OkHttpUtil.generateCustomSslOkHttpClient(context)).apply {
@@ -66,6 +70,11 @@ class ExoMediaPlayer(
     override fun initPlayer() {
         //重建播放器前，先释放旧的实例
         mPlayer?.release()
+
+        // 初始化音频延迟处理器
+        audioDelayProcessor = AudioDelayProcessor().apply {
+            setAudioDelay(_audioDelayMs)
+        }
 
         val renderersFactory =
             object : DefaultRenderersFactory(context) {
@@ -90,6 +99,13 @@ class ExoMediaPlayer(
                         out
                     )
                 }
+
+                override fun buildAudioProcessors(): Array<androidx.media3.common.audio.AudioProcessor> {
+                    val defaultProcessors = super.buildAudioProcessors().toMutableList()
+                    // 添加音频延迟处理器
+                    audioDelayProcessor?.let { defaultProcessors.add(it) }
+                    return defaultProcessors.toTypedArray()
+                }
             }.apply {
                 setExtensionRendererMode(
                     when (options.enableFfmpegAudioRenderer) {
@@ -111,6 +127,9 @@ class ExoMediaPlayer(
         // 设置音视频同步参数
         mPlayer?.setSkipSilenceEnabled(false) // 禁用跳过静音，以保持音频连续性
         mPlayer?.setVideoScalingMode(C.VIDEO_SCALING_MODE_SCALE_TO_FIT) // 设置视频缩放模式
+
+        // 应用音频延迟设置
+        applyAudioDelay()
 
         initListener()
 
@@ -309,6 +328,26 @@ class ExoMediaPlayer(
         } else {
             // 达到最大重试次数，通知错误
             mPlayerEventListener?.onError(error)
+        }
+    }
+
+    override var audioDelayMs: Long
+        get() = _audioDelayMs
+        set(value) {
+            _audioDelayMs = value
+            applyAudioDelay()
+        }
+
+    /**
+     * 应用音频延迟设置
+     * 通过音频延迟处理器来实现音画同步
+     */
+    private fun applyAudioDelay() {
+        try {
+            audioDelayProcessor?.setAudioDelay(_audioDelayMs)
+        } catch (e: Exception) {
+            // 处理可能的异常
+            e.printStackTrace()
         }
     }
 }

@@ -67,6 +67,9 @@ abstract class AbstractVideoPlayer {
     /** 视频高度 */
     abstract val videoHeight: Int
 
+    /** 音频延迟时间，单位毫秒 */
+    abstract var audioDelayMs: Long
+
     /**
      * 绑定VideoView，监听播放异常，完成，开始准备，视频size变化，视频信息等操作
      */

@@ -295,6 +295,14 @@ object Prefs {
                 value
             )
         }
+
+    var defaultAudioDelayMs: Long
+        get() = runBlocking {
+            dsm.getPreferenceFlow(PrefKeys.prefDefaultAudioDelayMsRequest).first()
+        }
+        set(value) = runBlocking {
+            dsm.editPreference(PrefKeys.prefDefaultAudioDelayMs, value)
+        }
 }
 
 private object PrefKeys {
@@ -339,6 +347,7 @@ private object PrefKeys {
     val prefPreferOfficialCdn = booleanPreferencesKey("prefer_official_cdn")
     val prefDefaultDanmakuMask = booleanPreferencesKey("prefer_enable_webmark")
     val prefEnableFfmpegAudioRenderer = booleanPreferencesKey("enable_ffmpeg_audio_renderer")
+    val prefDefaultAudioDelayMs = longPreferencesKey("default_audio_delay_ms")
 
     val prefIsLoginRequest = PreferenceRequest(prefIsLoginKey, false)
     val prefUidRequest = PreferenceRequest(prefUidKey, 0)
@@ -391,4 +400,5 @@ private object PrefKeys {
     val prefPreferOfficialCdnRequest = PreferenceRequest(prefPreferOfficialCdn, false)
     val prefDefaultDanmakuMaskRequest = PreferenceRequest(prefDefaultDanmakuMask, false)
     val prefEnableFfmpegEndererRequest = PreferenceRequest(prefEnableFfmpegAudioRenderer, true)
+    val prefDefaultAudioDelayMsRequest = PreferenceRequest(prefDefaultAudioDelayMs, 0L)
 }
