@@ -1,52 +1,143 @@
 package dev.aaa1115910.bv.player.impl.vlc
 
 import android.content.Context
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import dev.aaa1115910.bv.player.AbstractVideoPlayer
 import dev.aaa1115910.bv.player.VideoPlayerOptions
 import dev.aaa1115910.bv.player.formatMinSec
+import org.videolan.libvlc.LibVLC
+import org.videolan.libvlc.Media
+import org.videolan.libvlc.MediaPlayer
+import org.videolan.libvlc.util.VLCVideoLayout
+import java.util.ArrayList
 
 /**
- * VLC播放器实现（简化版本）
- * 当前版本为了解决VLC依赖编译问题而创建的占位实现
- * TODO: 完整的VLC集成实现
+ * VLC播放器实现
+ * 基于LibVLC实现的完整VLC播放器
  */
 class VlcMediaPlayer(
-    private val context: android.content.Context,
+    private val context: Context,
     private val options: VideoPlayerOptions
-) : AbstractVideoPlayer() {
+) : AbstractVideoPlayer(), MediaPlayer.EventListener {
 
-    // 简化的属性，避免VLC依赖问题
+    // LibVLC相关实例
+    private var libVLC: LibVLC? = null
+    private var mediaPlayer: MediaPlayer? = null
+    private var currentMedia: Media? = null
+
+    // 播放状态
     private var isPlayerPlaying = false
     private var currentPos = 0L
     private var totalDuration = 0L
     private var playbackSpeed = 1.0f
     private var _audioDelayMs: Long = options.audioDelayMs
+    private var currentVideoUrl: String? = null
+    private var currentAudioUrl: String? = null
+
+    // 视频信息
+    private var _videoWidth = 0
+    private var _videoHeight = 0
+    private var _bufferedPercentage = 0
+
+    // 重试相关
+    private var retryCount = 0
+    private val maxRetryCount = 3
+    private val retryDelayMs = 1000L
 
     // 当播放器实例重建时，该值会增加，用于通知 Compose UI 更新
     var playerInstanceId by mutableIntStateOf(0)
 
+    // VLC视频布局，用于UI集成
+    var vlcVideoLayout: VLCVideoLayout? = null
+
+    // 暴露MediaPlayer实例供UI使用
+    val mPlayer: MediaPlayer?
+        get() = mediaPlayer
+
     override fun initPlayer() {
         try {
-            // 简化的初始化逻辑
+            // 初始化LibVLC
+            val args = ArrayList<String>().apply {
+                // 基本配置
+                add("--no-drop-late-frames")
+                add("--no-skip-frames")
+                add("--rtsp-tcp")
+                add("--network-caching=150")
+                add("--clock-jitter=0")
+                add("--clock-synchro=0")
+
+                // 音视频同步配置
+                add("--audio-desync=0")
+
+                // 用户代理设置
+                options.userAgent?.let { userAgent ->
+                    add("--http-user-agent=$userAgent")
+                }
+
+                // Referer设置
+                options.referer?.let { referer ->
+                    add("--http-referrer=$referer")
+                }
+            }
+
+            libVLC = LibVLC(context, args)
+            mediaPlayer = MediaPlayer(libVLC).apply {
+                setEventListener(this@VlcMediaPlayer)
+                // 设置音频延迟
+                setAudioDelay(_audioDelayMs * 1000) // VLC使用微秒
+            }
+
             playerInstanceId++
-            // TODO: 实际的VLC初始化
         } catch (e: Exception) {
             e.printStackTrace()
             mPlayerEventListener?.onError(e)
         }
     }
     override fun setHeader(headers: Map<String, String>) {
-        // 简化实现：暂时不处理headers
+        // VLC通过URL参数或者Media选项设置headers
+        // 这里暂时不实现，因为VLC的header设置比较复杂
     }
 
     override fun playUrl(videoUrl: String?, audioUrl: String?) {
         try {
-            // 简化实现：记录URL但不实际播放
-            // TODO: 实际的VLC播放逻辑
-            mPlayerEventListener?.onReady()
+            currentVideoUrl = videoUrl
+            currentAudioUrl = audioUrl
+
+            // 重置重试计数
+            resetRetryCount()
+
+            // VLC不支持分离的音视频流，优先使用视频URL
+            val playUrl = videoUrl ?: audioUrl
+            if (playUrl == null) {
+                mPlayerEventListener?.onError(IllegalArgumentException("No valid URL provided"))
+                return
+            }
+
+            // 释放之前的媒体
+            currentMedia?.release()
+
+            // 创建新的媒体
+            currentMedia = Media(libVLC, Uri.parse(playUrl)).apply {
+                // 设置媒体选项
+                options.userAgent?.let { userAgent ->
+                    addOption(":http-user-agent=$userAgent")
+                }
+                options.referer?.let { referer ->
+                    addOption(":http-referrer=$referer")
+                }
+
+                // 网络缓存设置
+                addOption(":network-caching=150")
+                addOption(":clock-jitter=0")
+                addOption(":clock-synchro=0")
+            }
+
+            // 设置媒体到播放器
+            mediaPlayer?.media = currentMedia
+
         } catch (e: Exception) {
             e.printStackTrace()
             mPlayerEventListener?.onError(e)
@@ -54,87 +145,293 @@ class VlcMediaPlayer(
     }
 
     override fun prepare() {
-        // 简化实现：VLC不需要显式prepare
+        // VLC在设置媒体后会自动准备，这里触发准备完成事件
+        try {
+            // 媒体准备会在MediaPlayer.Event.Opening事件中处理
+        } catch (e: Exception) {
+            e.printStackTrace()
+            mPlayerEventListener?.onError(e)
+        }
     }
 
     override fun start() {
-        isPlayerPlaying = true
-        mPlayerEventListener?.onPlay()
+        try {
+            mediaPlayer?.play()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            mPlayerEventListener?.onError(e)
+        }
     }
 
     override fun pause() {
-        isPlayerPlaying = false
-        mPlayerEventListener?.onPause()
+        try {
+            mediaPlayer?.pause()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            mPlayerEventListener?.onError(e)
+        }
     }
 
     override fun stop() {
-        isPlayerPlaying = false
-        mPlayerEventListener?.onPause()
+        try {
+            mediaPlayer?.stop()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            mPlayerEventListener?.onError(e)
+        }
     }
 
     override fun reset() {
-        isPlayerPlaying = false
-        currentPos = 0L
+        try {
+            mediaPlayer?.stop()
+            currentMedia?.release()
+            currentMedia = null
+            currentPos = 0L
+            totalDuration = 0L
+            isPlayerPlaying = false
+        } catch (e: Exception) {
+            e.printStackTrace()
+            mPlayerEventListener?.onError(e)
+        }
     }
 
     override val isPlaying: Boolean
-        get() = isPlayerPlaying
+        get() = mediaPlayer?.isPlaying == true
 
     override fun seekTo(time: Long) {
-        currentPos = time
+        try {
+            mediaPlayer?.time = time
+        } catch (e: Exception) {
+            e.printStackTrace()
+            mPlayerEventListener?.onError(e)
+        }
     }
 
     override fun release() {
-        isPlayerPlaying = false
-        // TODO: 实际的VLC资源释放
+        try {
+            mediaPlayer?.release()
+            currentMedia?.release()
+            libVLC?.release()
+
+            mediaPlayer = null
+            currentMedia = null
+            libVLC = null
+            vlcVideoLayout = null
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     override val currentPosition: Long
-        get() = currentPos
+        get() = mediaPlayer?.time ?: 0L
 
     override val duration: Long
-        get() = totalDuration
+        get() = mediaPlayer?.length ?: 0L
 
     override val bufferedPercentage: Int
-        get() = if (totalDuration > 0) {
-            ((currentPos.toFloat() / totalDuration) * 100).toInt()
-        } else 0
+        get() = _bufferedPercentage
 
     override fun setOptions() {
-        // 简化实现：暂时不处理选项
+        try {
+            // 设置播放选项
+            mediaPlayer?.let { player ->
+                // 设置播放速度
+                player.rate = playbackSpeed
+
+                // 设置音频延迟
+                player.setAudioDelay(_audioDelayMs * 1000) // VLC使用微秒
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            mPlayerEventListener?.onError(e)
+        }
     }
 
     override var speed: Float
-        get() = playbackSpeed
+        get() = mediaPlayer?.rate ?: 1.0f
         set(value) {
-            playbackSpeed = value
+            try {
+                playbackSpeed = value
+                mediaPlayer?.rate = value
+            } catch (e: Exception) {
+                e.printStackTrace()
+                mPlayerEventListener?.onError(e)
+            }
         }
 
     override val debugInfo: String
         get() = """
-            player: VLC (simplified)
+            player: VLC
             time: ${currentPosition.formatMinSec()} / ${duration.formatMinSec()}
             buffered: $bufferedPercentage%
             rate: ${speed}x
             audio delay: ${audioDelayMs}ms
+            video: ${videoWidth}x${videoHeight}
+            url: ${currentVideoUrl ?: currentAudioUrl ?: "none"}
         """.trimIndent()
 
     override val videoWidth: Int
-        get() = 1920 // 默认值
+        get() = _videoWidth
 
     override val videoHeight: Int
-        get() = 1080 // 默认值
+        get() = _videoHeight
 
     override var audioDelayMs: Long
         get() = _audioDelayMs
         set(value) {
-            _audioDelayMs = value
-            // TODO: 实际的音频延迟设置
+            try {
+                _audioDelayMs = value
+                mediaPlayer?.setAudioDelay(value * 1000) // VLC使用微秒
+            } catch (e: Exception) {
+                e.printStackTrace()
+                mPlayerEventListener?.onError(e)
+            }
         }
 
     override var tcpSpeed: Long
-        get() = 0L // 简化实现
+        get() = 0L // VLC没有直接的TCP速度获取方法
         set(value) {
-            // TODO: 实际的TCP速度设置
+            // VLC没有直接的TCP速度设置方法
         }
+
+    // MediaPlayer.EventListener 实现
+    override fun onEvent(event: MediaPlayer.Event) {
+        when (event.type) {
+            MediaPlayer.Event.Opening -> {
+                // 媒体开始打开，开始缓冲
+                mPlayerEventListener?.onBuffering()
+            }
+
+            MediaPlayer.Event.Buffering -> {
+                // 缓冲中，更新缓冲百分比
+                _bufferedPercentage = event.buffering.toInt()
+                mPlayerEventListener?.onBuffering()
+            }
+
+            MediaPlayer.Event.Playing -> {
+                // 开始播放
+                isPlayerPlaying = true
+                mPlayerEventListener?.onPlay()
+            }
+
+            MediaPlayer.Event.Paused -> {
+                // 暂停
+                isPlayerPlaying = false
+                mPlayerEventListener?.onPause()
+            }
+
+            MediaPlayer.Event.Stopped -> {
+                // 停止
+                isPlayerPlaying = false
+                mPlayerEventListener?.onPause()
+            }
+
+            MediaPlayer.Event.EndReached -> {
+                // 播放结束
+                isPlayerPlaying = false
+                mPlayerEventListener?.onEnd()
+            }
+
+            MediaPlayer.Event.EncounteredError -> {
+                // 播放错误，尝试重试
+                isPlayerPlaying = false
+                handlePlaybackError()
+            }
+
+            MediaPlayer.Event.Vout -> {
+                // 视频输出事件
+                if (event.voutCount > 0) {
+                    // 获取视频尺寸
+                    mediaPlayer?.let { player ->
+                        val vtrack = player.currentVideoTrack
+                        if (vtrack != null) {
+                            _videoWidth = vtrack.width
+                            _videoHeight = vtrack.height
+                        }
+                    }
+                    // 第一次视频输出时表示准备就绪
+                    mPlayerEventListener?.onReady()
+                }
+            }
+
+            MediaPlayer.Event.LengthChanged -> {
+                // 时长变化
+                totalDuration = event.lengthChanged
+            }
+
+            MediaPlayer.Event.TimeChanged -> {
+                // 时间变化
+                currentPos = event.timeChanged
+            }
+
+            MediaPlayer.Event.MediaChanged -> {
+                // 媒体变化，重置状态
+                _videoWidth = 0
+                _videoHeight = 0
+                _bufferedPercentage = 0
+                totalDuration = 0L
+                currentPos = 0L
+            }
+
+            MediaPlayer.Event.ESAdded -> {
+                // 新的基本流添加（音频/视频轨道）
+                // 可以在这里处理多轨道音频/字幕
+            }
+
+            MediaPlayer.Event.ESDeleted -> {
+                // 基本流删除
+            }
+
+            MediaPlayer.Event.SeekableChanged -> {
+                // 可搜索状态变化
+            }
+
+            MediaPlayer.Event.PausableChanged -> {
+                // 可暂停状态变化
+            }
+
+            else -> {
+                // 其他事件暂不处理
+            }
+        }
+    }
+
+    /**
+     * 处理播放错误，包含重试逻辑
+     */
+    private fun handlePlaybackError() {
+        if (retryCount < maxRetryCount) {
+            retryCount++
+
+            // 延迟后重试
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                try {
+                    // 重新初始化播放器
+                    release()
+                    initPlayer()
+
+                    // 重新播放
+                    playUrl(currentVideoUrl, currentAudioUrl)
+                    prepare()
+                    start()
+
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    mPlayerEventListener?.onError(e)
+                }
+            }, retryDelayMs)
+
+        } else {
+            // 达到最大重试次数，通知错误
+            mPlayerEventListener?.onError(RuntimeException("VLC播放失败，已达到最大重试次数"))
+        }
+    }
+
+    /**
+     * 重置重试计数
+     */
+    private fun resetRetryCount() {
+        retryCount = 0
+    }
+}
 }

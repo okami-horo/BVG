@@ -74,6 +74,10 @@ dependencies {
     implementation(androidx.media3.ui)
     implementation(libs.material)
     implementation(project(":libs:ffmpegDecoder"))
+
+    // VLC播放器依赖
+    implementation("org.videolan.android:libvlc-all:${AppConfiguration.libVLCVersion}")
+
     testImplementation(libs.kotlin.test)
     androidTestImplementation(androidx.compose.ui.test.junit4)
     debugImplementation(androidx.compose.ui.test.manifest)

@@ -16,7 +16,7 @@ object AppConfiguration {
                 ".r${versionCode}.${"git rev-list HEAD --abbrev-commit --max-count=1".exec()}"
     }
     val versionCode: Int by lazy { "git rev-list --count HEAD".exec().toInt() }
-    const val libVLCVersion = "3.0.18"
+    const val libVLCVersion = "4.0.0-eap20"
     var googleServicesAvailable = true
 
     init {

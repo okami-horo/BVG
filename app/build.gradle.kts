@@ -204,7 +204,7 @@ dependencies {
     implementation(androidx.media3.ui)
 
     // VLC播放器
-    implementation("org.videolan.android:libvlc-all:4.0.0-eap20")
+    implementation("org.videolan.android:libvlc-all:${AppConfiguration.libVLCVersion}")
     implementation(androidx.room.ktx)
     implementation(androidx.room.runtime)
     implementation(androidx.webkit)

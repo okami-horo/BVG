@@ -327,34 +327,31 @@ class ExoMediaPlayer(
 
     /**
      * 应用音频延迟设置
-     * 通过调整播放时间来实现音画同步
+     * ExoPlayer的音频延迟实现
+     *
+     * 注意：ExoPlayer本身不支持运行时音频延迟调整，这是其架构限制。
+     * 真正的音画同步需要在播放器底层实现，建议使用VLC播放器获得更好的音画同步体验。
      */
     private fun applyAudioDelay() {
         try {
             mPlayer?.let { player ->
-                // ExoPlayer没有直接的音频延迟API，我们通过调整播放位置来模拟音频延迟效果
-                // 这是一个实用的解决方案，虽然不是最完美的，但对大多数情况都有效
+                // ExoPlayer的限制说明：
+                // 1. ExoPlayer不支持运行时音频延迟调整
+                // 2. 音频渲染器在初始化时就确定了音频处理管道
+                // 3. 要实现真正的音频延迟需要重建播放器实例
 
-                if (_audioDelayMs != 0L && player.isPlaying) {
-                    // 获取当前播放位置
-                    val currentPosition = player.currentPosition
+                // 当前实现：记录延迟值，但不进行实际调整
+                // 用户可以通过切换到VLC播放器来获得真正的音画同步功能
 
-                    // 计算调整后的位置
-                    // 正值表示音频延迟（音频滞后于视频），需要让音频"追赶"视频
-                    // 负值表示音频提前（音频超前于视频），需要让音频"等待"视频
-                    val adjustedPosition = currentPosition - _audioDelayMs
+                // 如果需要强制实现（不推荐），可以通过以下方式：
+                // 1. 重建播放器实例并配置音频处理器
+                // 2. 使用自定义AudioProcessor来处理音频延迟
+                // 3. 但这会导致播放中断和性能问题
 
-                    // 确保调整后的位置在有效范围内
-                    val validPosition = adjustedPosition.coerceAtLeast(0L).coerceAtMost(player.duration)
-
-                    // 只有在位置变化足够大时才进行调整，避免频繁的微小调整
-                    if (kotlin.math.abs(currentPosition - validPosition) > 50L) {
-                        player.seekTo(validPosition)
-                    }
-                }
+                // 因此，我们建议用户使用VLC播放器来获得更好的音画同步体验
+                println("ExoPlayer音频延迟设置: ${_audioDelayMs}ms (建议使用VLC播放器获得更好的音画同步体验)")
             }
         } catch (e: Exception) {
-            // 处理可能的异常
             e.printStackTrace()
         }
     }

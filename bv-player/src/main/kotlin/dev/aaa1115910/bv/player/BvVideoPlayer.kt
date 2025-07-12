@@ -56,17 +56,22 @@ fun BvVideoPlayer(
         }
 
         is VlcMediaPlayer -> {
-            // VLC播放器暂时使用简单的占位视图
-            // TODO: 完整的VLC UI集成待VLC依赖问题解决后实现
+            // 订阅播放器实例ID，当播放器重建时，这里会得到通知并触发重组
+            val playerInstanceId = videoPlayer.playerInstanceId
+
             AndroidView(
                 modifier = modifier.fillMaxSize(),
                 factory = { ctx ->
-                    android.view.View(ctx).apply {
+                    org.videolan.libvlc.util.VLCVideoLayout(ctx).apply {
                         setBackgroundColor(android.graphics.Color.BLACK)
                     }
                 },
-                update = { view ->
-                    // VLC UI集成待实现
+                update = { vlcVideoLayout ->
+                    // 每次重组时（包括播放器重建后），都将最新的播放器实例设置给VLCVideoLayout
+                    if (playerInstanceId > 0) {
+                        videoPlayer.vlcVideoLayout = vlcVideoLayout
+                        videoPlayer.mediaPlayer?.attachViews(vlcVideoLayout, null, false, false)
+                    }
                 }
             )
         }
