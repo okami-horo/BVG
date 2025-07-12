@@ -60,7 +60,7 @@ fun UpdateDialog(
     var contentLength: Long by remember { mutableLongStateOf(0L) }
     var targetProgress by remember { mutableFloatStateOf(0f) }
     val progress by animateFloatAsState(
-        targetValue = targetProgress,
+        targetValue = targetProgress.coerceIn(0f, 1f),
         label = "update progress"
     )
 
@@ -122,9 +122,11 @@ fun UpdateDialog(
                         override suspend fun onProgress(downloaded: Long, total: Long?) {
                             bytesSentTotal = downloaded
                             contentLength = total ?: 0
-                            targetProgress =
-                                runCatching { bytesSentTotal.toFloat() / contentLength }
-                                    .getOrDefault(0f)
+                            targetProgress = if (contentLength > 0) {
+                                (bytesSentTotal.toFloat() / contentLength).coerceIn(0f, 1f)
+                            } else {
+                                0f
+                            }
                         }
                     })
                 if (show) installUpdate(tempFile)
@@ -187,7 +189,7 @@ fun UpdateDialog(
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             LinearProgressIndicator(
-                                progress = { progress },
+                                progress = { progress.takeIf { it.isFinite() && !it.isNaN() } ?: 0f },
                                 modifier = Modifier.fillMaxWidth(),
                             )
                             Row(
