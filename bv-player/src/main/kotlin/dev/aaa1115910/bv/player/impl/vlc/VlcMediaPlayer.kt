@@ -51,23 +51,16 @@ class VlcMediaPlayer(
     // 当播放器实例重建时，该值会增加，用于通知 Compose UI 更新
     var playerInstanceId by mutableIntStateOf(0)
 
-    // VLC视频布局，用于UI集成（暂时使用占位）
-    var vlcVideoLayout: Any? = null // VLCVideoLayout? = null
+    // VLC视频布局，用于UI集成
+    var vlcVideoLayout: VLCVideoLayout? = null
 
-    // 暴露MediaPlayer实例供UI使用（暂时使用占位）
-    val mPlayer: Any? // MediaPlayer?
-        get() = null // mediaPlayer
+    // 暴露MediaPlayer实例供UI使用
+    val mPlayer: MediaPlayer?
+        get() = mediaPlayer
 
     override fun initPlayer() {
         try {
-            // 兼容实现：保留VLC初始化逻辑但使用占位
-            // TODO: 待VLC依赖问题解决后恢复真实实现
-
-            // 模拟VLC初始化成功
-            playerInstanceId++
-
-            // 注释的真实VLC初始化代码：
-            /*
+            // VLC播放器真实初始化
             val args = ArrayList<String>().apply {
                 // 基本配置
                 add("--no-drop-late-frames")
@@ -97,7 +90,9 @@ class VlcMediaPlayer(
                 // 设置音频延迟
                 setAudioDelay(_audioDelayMs * 1000) // VLC使用微秒
             }
-            */
+
+            // 播放器实例创建成功，增加实例ID
+            playerInstanceId++
 
         } catch (e: Exception) {
             e.printStackTrace()
