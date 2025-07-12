@@ -47,30 +47,36 @@ fun StepLessMenuItem(
                 println("StepLessMenuItem KeyEvent: ${it.key}, type: ${it.type}")
                 when (it.key) {
                     Key.DirectionUp -> {
-                        if (it.type == KeyEventType.KeyUp) return@onPreviewKeyEvent true
-                        val newValue = if (value >= range.endInclusive - step) {
-                            range.endInclusive
-                        } else {
-                            value + step
+                        if (it.type == KeyEventType.KeyDown) {
+                            val newValue = if (value >= range.endInclusive - step) {
+                                range.endInclusive
+                            } else {
+                                value + step
+                            }
+                            println("StepLessMenuItem: Up pressed, changing value from $value to $newValue")
+                            onValueChange(newValue)
                         }
-                        onValueChange(newValue)
                         return@onPreviewKeyEvent true
                     }
 
                     Key.DirectionDown -> {
-                        if (it.type == KeyEventType.KeyUp) return@onPreviewKeyEvent true
-                        val newValue = if (value - step <= range.start) {
-                            range.start
-                        } else {
-                            value - step
+                        if (it.type == KeyEventType.KeyDown) {
+                            val newValue = if (value - step <= range.start) {
+                                range.start
+                            } else {
+                                value - step
+                            }
+                            println("StepLessMenuItem: Down pressed, changing value from $value to $newValue")
+                            onValueChange(newValue)
                         }
-                        onValueChange(newValue)
                         return@onPreviewKeyEvent true
                     }
 
                     Key.DirectionLeft, Key.DirectionRight -> {
-                        if (it.type == KeyEventType.KeyUp) return@onPreviewKeyEvent true
-                        onFocusBackToParent()
+                        if (it.type == KeyEventType.KeyDown) {
+                            println("StepLessMenuItem: Left/Right pressed, going back to parent")
+                            onFocusBackToParent()
+                        }
                         return@onPreviewKeyEvent true
                     }
                 }
@@ -111,30 +117,36 @@ fun StepLessMenuItem(
                 println("StepLessMenuItem Int KeyEvent: ${it.key}, type: ${it.type}")
                 when (it.key) {
                     Key.DirectionUp -> {
-                        if (it.type == KeyEventType.KeyUp) return@onPreviewKeyEvent true
-                        val newValue = if (value >= range.last - step) {
-                            range.last
-                        } else {
-                            value + step
+                        if (it.type == KeyEventType.KeyDown) {
+                            val newValue = if (value >= range.last - step) {
+                                range.last
+                            } else {
+                                value + step
+                            }
+                            println("StepLessMenuItem Int: Up pressed, changing value from $value to $newValue")
+                            onValueChange(newValue)
                         }
-                        onValueChange(newValue)
                         return@onPreviewKeyEvent true
                     }
 
                     Key.DirectionDown -> {
-                        if (it.type == KeyEventType.KeyUp) return@onPreviewKeyEvent true
-                        val newValue = if (value - step <= range.first) {
-                            range.first
-                        } else {
-                            value - step
+                        if (it.type == KeyEventType.KeyDown) {
+                            val newValue = if (value - step <= range.first) {
+                                range.first
+                            } else {
+                                value - step
+                            }
+                            println("StepLessMenuItem Int: Down pressed, changing value from $value to $newValue")
+                            onValueChange(newValue)
                         }
-                        onValueChange(newValue)
                         return@onPreviewKeyEvent true
                     }
 
                     Key.DirectionLeft, Key.DirectionRight -> {
-                        if (it.type == KeyEventType.KeyUp) return@onPreviewKeyEvent true
-                        onFocusBackToParent()
+                        if (it.type == KeyEventType.KeyDown) {
+                            println("StepLessMenuItem Int: Left/Right pressed, going back to parent")
+                            onFocusBackToParent()
+                        }
                         return@onPreviewKeyEvent true
                     }
                 }
