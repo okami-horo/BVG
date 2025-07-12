@@ -169,6 +169,7 @@ fun MenuController(
                     onPlaySpeedChange = onPlaySpeedChange,
                     onAspectRatioChange = onAspectRatioChange,
                     onAudioChange = onAudioChange,
+                    onAudioSyncChange = onAudioSyncChange,
                     onDanmakuSwitchChange = onDanmakuSwitchChange,
                     onDanmakuSizeChange = onDanmakuSizeChange,
                     onDanmakuOpacityChange = onDanmakuOpacityChange,
