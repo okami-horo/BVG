@@ -70,7 +70,8 @@ fun BvVideoPlayer(
                     // 每次重组时（包括播放器重建后），都将最新的播放器实例设置给VLCVideoLayout
                     if (playerInstanceId > 0) {
                         videoPlayer.vlcVideoLayout = vlcVideoLayout
-                        videoPlayer.mediaPlayer?.attachViews(vlcVideoLayout, null, false, false)
+                        // VLC 4.0 API: 使用vlcVout来附加视图
+                        videoPlayer.mPlayer?.vlcVout?.setVideoView(vlcVideoLayout)
                     }
                 }
             )
