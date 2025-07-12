@@ -391,7 +391,7 @@ private object PrefKeys {
     val prefShowFpsRequest = PreferenceRequest(prefShowFpsKey, false)
     val prefBuvidRequest = PreferenceRequest(prefBuvidKey, "")
     val prefBuvid3Request = PreferenceRequest(prefBuvid3Key, "")
-    val prefPlayerTypeRequest = PreferenceRequest(prefPlayerTypeKey, PlayerType.Media3.ordinal)
+    val prefPlayerTypeRequest = PreferenceRequest(prefPlayerTypeKey, PlayerType.VLC.ordinal)
     val prefDensityRequest =
         PreferenceRequest(prefDensityKey, BVApp.context.resources.displayMetrics.widthPixels / 960f)
     val prefUseOldPlayerRequest = PreferenceRequest(prefUseOldPlayerKey, false)

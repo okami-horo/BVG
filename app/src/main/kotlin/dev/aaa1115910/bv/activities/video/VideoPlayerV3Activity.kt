@@ -12,6 +12,7 @@ import dev.aaa1115910.bv.entity.PlayerType
 import dev.aaa1115910.bv.entity.proxy.ProxyArea
 import dev.aaa1115910.bv.player.VideoPlayerOptions
 import dev.aaa1115910.bv.player.impl.exo.ExoPlayerFactory
+import dev.aaa1115910.bv.player.impl.vlc.VlcPlayerFactory
 import dev.aaa1115910.bv.screen.VideoPlayerV3Screen
 import dev.aaa1115910.bv.ui.theme.BVTheme
 import dev.aaa1115910.bv.util.Prefs
@@ -101,6 +102,7 @@ class VideoPlayerV3Activity : ComponentActivity() {
         )
         val videoPlayer = when (Prefs.playerType) {
             PlayerType.Media3 -> ExoPlayerFactory().create(this, options)
+            PlayerType.VLC -> VlcPlayerFactory().create(this, options)
         }
         playerViewModel.videoPlayer = videoPlayer
     }

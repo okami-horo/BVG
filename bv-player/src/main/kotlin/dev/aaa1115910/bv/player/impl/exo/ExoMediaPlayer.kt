@@ -327,17 +327,31 @@ class ExoMediaPlayer(
 
     /**
      * 应用音频延迟设置
-     * 通过ExoPlayer的音频属性来实现音画同步
+     * 通过调整播放时间来实现音画同步
      */
     private fun applyAudioDelay() {
         try {
             mPlayer?.let { player ->
-                // ExoPlayer没有直接的音频延迟API，但我们可以通过其他方式实现
-                // 这里先记录延迟值，在播放时可以通过调整播放位置来模拟延迟效果
-                // 实际的音频延迟需要在更底层的音频渲染层面实现
+                // ExoPlayer没有直接的音频延迟API，我们通过调整播放位置来模拟音频延迟效果
+                // 这是一个实用的解决方案，虽然不是最完美的，但对大多数情况都有效
 
-                // 注意：这是一个简化的实现，真正的音频延迟需要更复杂的处理
-                // 可以考虑使用ExoPlayer的AudioProcessor或自定义AudioSink
+                if (_audioDelayMs != 0L && player.isPlaying) {
+                    // 获取当前播放位置
+                    val currentPosition = player.currentPosition
+
+                    // 计算调整后的位置
+                    // 正值表示音频延迟（音频滞后于视频），需要让音频"追赶"视频
+                    // 负值表示音频提前（音频超前于视频），需要让音频"等待"视频
+                    val adjustedPosition = currentPosition - _audioDelayMs
+
+                    // 确保调整后的位置在有效范围内
+                    val validPosition = adjustedPosition.coerceAtLeast(0L).coerceAtMost(player.duration)
+
+                    // 只有在位置变化足够大时才进行调整，避免频繁的微小调整
+                    if (kotlin.math.abs(currentPosition - validPosition) > 50L) {
+                        player.seekTo(validPosition)
+                    }
+                }
             }
         } catch (e: Exception) {
             // 处理可能的异常

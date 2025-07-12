@@ -100,6 +100,7 @@ fun VideoPlayerV3Screen(
     var currentVideoAspectRatio by remember { mutableStateOf(VideoAspectRatio.Default) }
     var currentPosition by remember { mutableLongStateOf(0L) }
     var currentPlaySpeed by remember { mutableFloatStateOf(Prefs.defaultPlaySpeed) }
+    var currentAudioDelayMs by remember { mutableLongStateOf(Prefs.defaultAudioDelayMs) }
     var aspectRatio by remember { mutableFloatStateOf(16f / 9f) }
 
     var clock: Triple<Int, Int, Int> by remember { mutableStateOf(Triple(0, 0, 0)) }
@@ -443,7 +444,7 @@ fun VideoPlayerV3Screen(
             currentVideoAspectRatio = currentVideoAspectRatio,
             currentVideoSpeed = currentPlaySpeed,
             currentAudio = playerViewModel.currentAudio,
-            currentAudioDelayMs = playerViewModel.videoPlayer?.audioDelayMs ?: 0L,
+            currentAudioDelayMs = currentAudioDelayMs,
             currentDanmakuEnabled = playerViewModel.currentDanmakuEnabled,
             currentDanmakuEnabledList = playerViewModel.currentDanmakuTypes,
             currentDanmakuScale = playerViewModel.currentDanmakuScale,
@@ -571,6 +572,7 @@ fun VideoPlayerV3Screen(
             },
             onAudioSyncChange = { delayMs ->
                 logger.info { "Set audio delay: ${delayMs}ms" }
+                currentAudioDelayMs = delayMs
                 videoPlayer.audioDelayMs = delayMs
                 Prefs.defaultAudioDelayMs = delayMs
             },

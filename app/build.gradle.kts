@@ -202,6 +202,9 @@ dependencies {
     implementation(androidx.media3.decoder)
     implementation(androidx.media3.exoplayer)
     implementation(androidx.media3.ui)
+
+    // VLC播放器
+    implementation("org.videolan.android:libvlc-all:4.0.0")
     implementation(androidx.room.ktx)
     implementation(androidx.room.runtime)
     implementation(androidx.webkit)
