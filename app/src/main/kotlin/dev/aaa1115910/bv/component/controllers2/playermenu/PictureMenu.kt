@@ -29,6 +29,7 @@ import dev.aaa1115910.bv.component.controllers.LocalVideoPlayerControllerData
 import dev.aaa1115910.bv.component.controllers2.LocalMenuFocusStateData
 import dev.aaa1115910.bv.component.controllers2.MenuFocusState
 import dev.aaa1115910.bv.component.controllers2.VideoPlayerPictureMenuItem
+import dev.aaa1115910.bv.component.controllers2.playermenu.component.AudioSyncButtonMenuItem
 import dev.aaa1115910.bv.component.controllers2.playermenu.component.MenuListItem
 import dev.aaa1115910.bv.component.controllers2.playermenu.component.RadioMenuList
 import dev.aaa1115910.bv.component.controllers2.playermenu.component.StepLessMenuItem
@@ -136,13 +137,10 @@ fun PictureMenuList(
                     }
                 )
 
-                VideoPlayerPictureMenuItem.AudioSync -> StepLessMenuItem(
+                VideoPlayerPictureMenuItem.AudioSync -> AudioSyncButtonMenuItem(
                     modifier = menuItemsModifier,
-                    value = data.currentAudioDelayMs.toFloat(),
-                    step = 50f,
-                    range = -1000f..1000f,
-                    text = "${data.currentAudioDelayMs}ms",
-                    onValueChange = { onAudioSyncChange(it.toLong()) },
+                    value = data.currentAudioDelayMs,
+                    onValueChange = onAudioSyncChange,
                     onFocusBackToParent = { onFocusStateChange(MenuFocusState.Menu) }
                 )
             }
