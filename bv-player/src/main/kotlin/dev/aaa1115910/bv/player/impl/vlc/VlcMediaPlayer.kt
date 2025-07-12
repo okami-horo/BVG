@@ -8,11 +8,11 @@ import androidx.compose.runtime.setValue
 import dev.aaa1115910.bv.player.AbstractVideoPlayer
 import dev.aaa1115910.bv.player.VideoPlayerOptions
 import dev.aaa1115910.bv.player.formatMinSec
-// VLC imports - 暂时注释以解决编译问题
-// import org.videolan.libvlc.LibVLC
-// import org.videolan.libvlc.Media
-// import org.videolan.libvlc.MediaPlayer
-// import org.videolan.libvlc.util.VLCVideoLayout
+import org.videolan.libvlc.LibVLC
+import org.videolan.libvlc.Media
+import org.videolan.libvlc.MediaPlayer
+import org.videolan.libvlc.util.VLCVideoLayout
+import android.net.Uri
 import java.util.ArrayList
 
 /**
@@ -23,12 +23,12 @@ import java.util.ArrayList
 class VlcMediaPlayer(
     private val context: Context,
     private val options: VideoPlayerOptions
-) : AbstractVideoPlayer() {
+) : AbstractVideoPlayer(), MediaPlayer.EventListener {
 
-    // VLC相关实例（暂时使用占位）
-    // private var libVLC: LibVLC? = null
-    // private var mediaPlayer: MediaPlayer? = null
-    // private var currentMedia: Media? = null
+    // VLC相关实例
+    private var libVLC: LibVLC? = null
+    private var mediaPlayer: MediaPlayer? = null
+    private var currentMedia: Media? = null
 
     // 播放状态
     private var isPlayerPlaying = false
@@ -303,103 +303,7 @@ class VlcMediaPlayer(
             // VLC没有直接的TCP速度设置方法
         }
 
-    // MediaPlayer.EventListener 实现
-    override fun onEvent(event: MediaPlayer.Event) {
-        when (event.type) {
-            MediaPlayer.Event.Opening -> {
-                // 媒体开始打开，开始缓冲
-                mPlayerEventListener?.onBuffering()
-            }
 
-            MediaPlayer.Event.Buffering -> {
-                // 缓冲中，更新缓冲百分比
-                _bufferedPercentage = event.buffering.toInt()
-                mPlayerEventListener?.onBuffering()
-            }
-
-            MediaPlayer.Event.Playing -> {
-                // 开始播放
-                isPlayerPlaying = true
-                mPlayerEventListener?.onPlay()
-            }
-
-            MediaPlayer.Event.Paused -> {
-                // 暂停
-                isPlayerPlaying = false
-                mPlayerEventListener?.onPause()
-            }
-
-            MediaPlayer.Event.Stopped -> {
-                // 停止
-                isPlayerPlaying = false
-                mPlayerEventListener?.onPause()
-            }
-
-            MediaPlayer.Event.EndReached -> {
-                // 播放结束
-                isPlayerPlaying = false
-                mPlayerEventListener?.onEnd()
-            }
-
-            MediaPlayer.Event.EncounteredError -> {
-                // 播放错误，尝试重试
-                isPlayerPlaying = false
-                handlePlaybackError()
-            }
-
-            MediaPlayer.Event.Vout -> {
-                // 视频输出事件
-                if (event.voutCount > 0) {
-                    // 获取视频尺寸 - 简化实现，避免API兼容性问题
-                    // VLC 4.0 API变化较大，这里使用默认值，实际尺寸会在播放时更新
-                    _videoWidth = 1920
-                    _videoHeight = 1080
-                    // 第一次视频输出时表示准备就绪
-                    mPlayerEventListener?.onReady()
-                }
-            }
-
-            MediaPlayer.Event.LengthChanged -> {
-                // 时长变化
-                totalDuration = event.lengthChanged
-            }
-
-            MediaPlayer.Event.TimeChanged -> {
-                // 时间变化
-                currentPos = event.timeChanged
-            }
-
-            MediaPlayer.Event.MediaChanged -> {
-                // 媒体变化，重置状态
-                _videoWidth = 0
-                _videoHeight = 0
-                _bufferedPercentage = 0
-                totalDuration = 0L
-                currentPos = 0L
-            }
-
-            MediaPlayer.Event.ESAdded -> {
-                // 新的基本流添加（音频/视频轨道）
-                // 可以在这里处理多轨道音频/字幕
-            }
-
-            MediaPlayer.Event.ESDeleted -> {
-                // 基本流删除
-            }
-
-            MediaPlayer.Event.SeekableChanged -> {
-                // 可搜索状态变化
-            }
-
-            MediaPlayer.Event.PausableChanged -> {
-                // 可暂停状态变化
-            }
-
-            else -> {
-                // 其他事件暂不处理
-            }
-        }
-    }
 
     /**
      * 处理播放错误，包含重试逻辑
