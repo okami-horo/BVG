@@ -12,13 +12,12 @@ import org.videolan.libvlc.LibVLC
 import org.videolan.libvlc.Media
 import org.videolan.libvlc.MediaPlayer
 import org.videolan.libvlc.util.VLCVideoLayout
-import android.net.Uri
 import java.util.ArrayList
 
 /**
- * VLC播放器实现（兼容版本）
- * 当前版本为了解决VLC依赖编译问题而创建的兼容实现
- * 保留完整的接口和功能逻辑，待VLC依赖问题解决后可快速切换到真实实现
+ * VLC播放器完整实现
+ * 基于LibVLC提供完整的视频播放功能，支持音视频同步调整
+ * 相比ExoPlayer的优势：支持运行时音频延迟调整、更好的音视频同步
  */
 class VlcMediaPlayer(
     private val context: Context,
