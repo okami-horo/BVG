@@ -49,6 +49,11 @@ fun UpdateDialog(
     val scope = rememberCoroutineScope()
     val logger = KotlinLogging.logger("UpdateDialog")
 
+    // 获取当前构建类型信息
+    val buildTypeName = BuildConfig.BUILD_TYPE_NAME
+    val isAlpha = buildTypeName == "alpha"
+    val isDebug = buildTypeName == "debug"
+
     var updateStatus by remember { mutableStateOf(UpdateStatus.UpdatingInfo) }
 
     var bytesSentTotal: Long by remember { mutableLongStateOf(0L) }
@@ -151,25 +156,30 @@ fun UpdateDialog(
             title = {
                 Text(
                     text = when (updateStatus) {
-                        UpdateStatus.UpdatingInfo -> "获取更新信息中"
-                        UpdateStatus.Ready -> latestReleaseBuild!!.name
-                        UpdateStatus.Downloading -> "下载中"
-                        UpdateStatus.Installing -> "安装中"
-                        UpdateStatus.NoAvailableUpdate -> "无可用更新"
-                        UpdateStatus.CheckError -> "检查更新失败"
-                        UpdateStatus.DownloadError -> "下载失败"
-                        UpdateStatus.InstallError -> "安装失败"
+                        UpdateStatus.UpdatingInfo -> "获取更新信息中 (${buildTypeName.uppercase()})"
+                        UpdateStatus.Ready -> "${latestReleaseBuild!!.name} (${buildTypeName.uppercase()})"
+                        UpdateStatus.Downloading -> "下载中 (${buildTypeName.uppercase()})"
+                        UpdateStatus.Installing -> "安装中 (${buildTypeName.uppercase()})"
+                        UpdateStatus.NoAvailableUpdate -> "无可用更新 (${buildTypeName.uppercase()})"
+                        UpdateStatus.CheckError -> "检查更新失败 (${buildTypeName.uppercase()})"
+                        UpdateStatus.DownloadError -> "下载失败 (${buildTypeName.uppercase()})"
+                        UpdateStatus.InstallError -> "安装失败 (${buildTypeName.uppercase()})"
                     }
                 )
             },
             text = {
                 when (updateStatus) {
                     UpdateStatus.UpdatingInfo -> {
-                        Text(text = "检查更新中...")
+                        Text(text = "正在检查 ${buildTypeName.uppercase()} 版本更新...")
                     }
 
                     UpdateStatus.Ready -> {
-                        Text(text = latestReleaseBuild?.body ?: "Empty content")
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(text = "发现新的 ${buildTypeName.uppercase()} 版本！")
+                            Text(text = latestReleaseBuild?.body ?: "Empty content")
+                        }
                     }
 
                     UpdateStatus.Downloading -> {
@@ -206,7 +216,7 @@ fun UpdateDialog(
                     }
 
                     UpdateStatus.NoAvailableUpdate -> {
-                        Text(text = "真没更新，骗你是小狗！")
+                        Text(text = "当前已是最新的 ${buildTypeName.uppercase()} 版本！")
                     }
                 }
             },

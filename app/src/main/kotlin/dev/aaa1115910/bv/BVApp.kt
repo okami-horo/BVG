@@ -34,6 +34,7 @@ import dev.aaa1115910.bv.network.HttpServer
 import dev.aaa1115910.bv.repository.UserRepository
 import dev.aaa1115910.bv.repository.VideoInfoRepository
 import dev.aaa1115910.bv.screen.user.UserSwitchViewModel
+import dev.aaa1115910.bv.util.AutoUpdateChecker
 import dev.aaa1115910.bv.util.BuglyUtil
 import dev.aaa1115910.bv.util.LogCatcherUtil
 import dev.aaa1115910.bv.util.Prefs
@@ -99,6 +100,7 @@ class BVApp : Application(), ImageLoaderFactory {
         initProxy()
         instance = this
         updateMigration()
+        initAutoUpdateChecker()
         HttpServer.startServer()
     }
 
@@ -176,6 +178,18 @@ class BVApp : Application(), ImageLoaderFactory {
             }
         }
         Prefs.lastVersionCode = BuildConfig.VERSION_CODE
+    }
+
+    private fun initAutoUpdateChecker() {
+        // 清理旧的更新文件
+        AutoUpdateChecker.cleanupOldUpdateFiles(applicationContext)
+
+        // 在后台检查更新
+        if (AutoUpdateChecker.shouldCheckUpdate()) {
+            Log.i("BVApp", "Starting background update check for ${BuildConfig.BUILD_TYPE_NAME}")
+            // 这里可以添加后台检查逻辑，但为了简单起见，我们只记录日志
+            // 实际的检查会在用户主动触发时进行
+        }
     }
 }
 

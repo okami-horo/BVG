@@ -84,6 +84,7 @@ android {
                 "proguard-rules.pro"
             )
             signingConfig = signingConfigs.findByName("key")
+            buildConfigField("String", "BUILD_TYPE_NAME", "\"release\"")
         }
         debug {
             isMinifyEnabled = false
@@ -92,6 +93,7 @@ android {
                 "proguard-rules.pro"
             )
             applicationIdSuffix = ".debug"
+            buildConfigField("String", "BUILD_TYPE_NAME", "\"debug\"")
         }
         create("r8Test") {
             isMinifyEnabled = true
@@ -101,6 +103,7 @@ android {
             )
             applicationIdSuffix = ".r8test"
             signingConfig = signingConfigs.findByName("key")
+            buildConfigField("String", "BUILD_TYPE_NAME", "\"r8Test\"")
         }
         create("alpha") {
             isMinifyEnabled = false
@@ -109,6 +112,7 @@ android {
                 "proguard-rules.pro"
             )
             signingConfig = signingConfigs.findByName("key")
+            buildConfigField("String", "BUILD_TYPE_NAME", "\"alpha\"")
         }
     }
     // https://issuetracker.google.com/issues/260059413

@@ -29,8 +29,8 @@ import java.io.File
 
 object GithubApi {
     private var endPoint = "api.github.com"
-    private const val OWNER = "aaa1115910"
-    private const val REPO = "bv"
+    private const val OWNER = "okami-horo"
+    private const val REPO = "BVG"
     private lateinit var client: HttpClient
     private val json = Json {
         coerceInputValues = true
@@ -38,7 +38,9 @@ object GithubApi {
         prettyPrint = true
     }
     private val isDebug get() = BuildConfig.DEBUG
-    private val isAlpha get() = Prefs.updateAlpha
+    private val isAlpha get() = BuildConfig.BUILD_TYPE_NAME == "alpha"
+    private val isRelease get() = BuildConfig.BUILD_TYPE_NAME == "release"
+    private val buildTypeName get() = BuildConfig.BUILD_TYPE_NAME
 
     init {
         createClient()
@@ -92,16 +94,28 @@ object GithubApi {
         while (release == null) {
             val releases = getReleases(page = page)
             if (releases.isEmpty()) break
-            release = releases.firstOrNull { it.isPreRelease }
+            // 根据构建类型筛选对应的预发布版本
+            release = when (buildTypeName) {
+                "alpha" -> releases.firstOrNull {
+                    it.isPreRelease && it.assets.any { asset -> asset.name.contains("alpha") }
+                }
+                "debug" -> releases.firstOrNull {
+                    it.isPreRelease && it.assets.any { asset -> asset.name.contains("debug") }
+                }
+                else -> releases.firstOrNull { it.isPreRelease }
+            }
             page++
         }
-        return release ?: throw IllegalStateException("No pre-release found")
+        return release ?: throw IllegalStateException("No pre-release found for build type: $buildTypeName")
     }
 
     suspend fun getLatestReleaseBuild(): Release = getLatestRelease()
 
-    suspend fun getLatestBuild(): Release =
-        if (isAlpha) getLatestPreReleaseBuild() else getLatestReleaseBuild()
+    suspend fun getLatestBuild(): Release = when (buildTypeName) {
+        "alpha" -> getLatestPreReleaseBuild()
+        "debug" -> getLatestPreReleaseBuild() // debug 版本也使用 prerelease
+        else -> getLatestReleaseBuild()
+    }
 
     private fun checkErrorMessage(data: String) {
         val responseElement = json.parseToJsonElement(data)
@@ -115,10 +129,14 @@ object GithubApi {
         file: File,
         downloadListener: ProgressListener
     ) {
-        val downloadUrl =
-            if (isDebug) release.assets.firstOrNull { it.name.contains("debug") }?.browserDownloadUrl
-            else release.assets.firstOrNull { it.name.contains("alpha") || it.name.contains("release") }?.browserDownloadUrl
-        downloadUrl ?: throw IllegalStateException("Didn't find download url")
+        val downloadUrl = when (buildTypeName) {
+            "debug" -> release.assets.firstOrNull { it.name.contains("debug") }?.browserDownloadUrl
+            "alpha" -> release.assets.firstOrNull { it.name.contains("alpha") }?.browserDownloadUrl
+            "release" -> release.assets.firstOrNull { it.name.contains("release") }?.browserDownloadUrl
+            "r8Test" -> release.assets.firstOrNull { it.name.contains("release") }?.browserDownloadUrl
+            else -> release.assets.firstOrNull { it.name.contains("release") }?.browserDownloadUrl
+        }
+        downloadUrl ?: throw IllegalStateException("Didn't find download url for build type: $buildTypeName")
         client.prepareRequest {
             url(downloadUrl)
             onDownload(downloadListener)

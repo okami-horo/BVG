@@ -267,6 +267,14 @@ object Prefs {
         get() = runBlocking { dsm.getPreferenceFlow(PrefKeys.prefLastVersionCodeRequest).first() }
         set(value) = runBlocking { dsm.editPreference(PrefKeys.prefLastVersionCodeKey, value) }
 
+    var autoCheckUpdate: Boolean
+        get() = runBlocking { dsm.getPreferenceFlow(PrefKeys.prefAutoCheckUpdateRequest).first() }
+        set(value) = runBlocking { dsm.editPreference(PrefKeys.prefAutoCheckUpdateKey, value) }
+
+    var lastUpdateCheckTime: Long
+        get() = runBlocking { dsm.getPreferenceFlow(PrefKeys.prefLastUpdateCheckTimeRequest).first() }
+        set(value) = runBlocking { dsm.editPreference(PrefKeys.prefLastUpdateCheckTimeKey, value) }
+
     var showedRemoteControllerPanelDemo: Boolean
         get() = runBlocking {
             dsm.getPreferenceFlow(PrefKeys.prefShowedRemoteControllerPanelDemoRequest).first()
@@ -343,6 +351,8 @@ private object PrefKeys {
     val prefProxyHttpServerKey = stringPreferencesKey("proxy_http_server")
     val prefProxyGRPCServerKey = stringPreferencesKey("proxy_grpc_server")
     val prefLastVersionCodeKey = intPreferencesKey("last_version_code")
+    val prefAutoCheckUpdateKey = booleanPreferencesKey("auto_check_update")
+    val prefLastUpdateCheckTimeKey = longPreferencesKey("last_update_check_time")
     val prefShowedRemoteControllerPanelDemoKey = booleanPreferencesKey("showed_rcpd")
     val prefPreferOfficialCdn = booleanPreferencesKey("prefer_official_cdn")
     val prefDefaultDanmakuMask = booleanPreferencesKey("prefer_enable_webmark")
@@ -395,6 +405,8 @@ private object PrefKeys {
     val prefProxyHttpServerRequest = PreferenceRequest(prefProxyHttpServerKey, "")
     val prefProxyGRPCServerRequest = PreferenceRequest(prefProxyGRPCServerKey, "")
     val prefLastVersionCodeRequest = PreferenceRequest(prefLastVersionCodeKey, 0)
+    val prefAutoCheckUpdateRequest = PreferenceRequest(prefAutoCheckUpdateKey, true)
+    val prefLastUpdateCheckTimeRequest = PreferenceRequest(prefLastUpdateCheckTimeKey, 0L)
     val prefShowedRemoteControllerPanelDemoRequest =
         PreferenceRequest(prefShowedRemoteControllerPanelDemoKey, false)
     val prefPreferOfficialCdnRequest = PreferenceRequest(prefPreferOfficialCdn, false)
