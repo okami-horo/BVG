@@ -52,8 +52,10 @@ fun NetworkSetting(
     var proxyHttpServer by remember { mutableStateOf(Prefs.proxyHttpServer) }
     var proxyGRPCServer by remember { mutableStateOf(Prefs.proxyGRPCServer) }
     var preferOfficialCdn by remember { mutableStateOf(Prefs.preferOfficialCdn) }
+    var githubMirrorPrefix by remember { mutableStateOf(Prefs.githubMirrorPrefix) }
     var showProxyHttpServerEditDialog by remember { mutableStateOf(false) }
     var showProxyGRPCServerEditDialog by remember { mutableStateOf(false) }
+    var showGithubMirrorPrefixEditDialog by remember { mutableStateOf(false) }
 
     Box(
         modifier = modifier
@@ -121,6 +123,14 @@ fun NetworkSetting(
 
                 item {
                     SettingListItem(
+                        title = stringResource(R.string.settings_network_github_mirror_prefix_title),
+                        supportText = if (githubMirrorPrefix.isBlank()) stringResource(R.string.settings_network_proxy_server_content_empty) else githubMirrorPrefix,
+                        onClick = { showGithubMirrorPrefixEditDialog = true }
+                    )
+                }
+
+                item {
+                    SettingListItem(
                         title = stringResource(R.string.settings_network_test_title),
                         supportText = stringResource(R.string.settings_network_test_text),
                         onClick = {
@@ -158,6 +168,16 @@ fun NetworkSetting(
                     proxyServer = it
                 )
             }
+        }
+    )
+    GithubMirrorPrefixEditDialog(
+        show = showGithubMirrorPrefixEditDialog,
+        onHideDialog = { showGithubMirrorPrefixEditDialog = false },
+        title = stringResource(R.string.settings_network_github_mirror_prefix_title),
+        mirrorPrefix = githubMirrorPrefix,
+        onMirrorPrefixChange = {
+            githubMirrorPrefix = it
+            Prefs.githubMirrorPrefix = it
         }
     )
 }
@@ -209,6 +229,66 @@ fun ProxyServerEditDialog(
                             .replace("https://", "")
                             .replace("http://", "")
                     )
+                    onHideDialog()
+                }) {
+                    Text(text = stringResource(id = R.string.common_confirm))
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = onHideDialog) {
+                    Text(text = stringResource(id = R.string.common_cancel))
+                }
+            }
+        )
+    }
+}
+
+@Composable
+fun GithubMirrorPrefixEditDialog(
+    modifier: Modifier = Modifier,
+    show: Boolean,
+    onHideDialog: () -> Unit,
+    title: String,
+    mirrorPrefix: String,
+    onMirrorPrefixChange: (String) -> Unit
+) {
+    var mirrorPrefixString by remember(show) { mutableStateOf(mirrorPrefix) }
+
+    if (show) {
+        AlertDialog(
+            modifier = modifier,
+            title = { Text(text = title) },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedTextField(
+                        value = mirrorPrefixString,
+                        onValueChange = { mirrorPrefixString = it },
+                        singleLine = true,
+                        maxLines = 1,
+                        shape = MaterialTheme.shapes.medium,
+                        placeholder = { Text(text = "https://gh-proxy.com/") }
+                    )
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(imageVector = Icons.Outlined.Info, contentDescription = null)
+                        Text(
+                            text = "配置 GitHub Release 下载加速前缀，如 https://gh-proxy.com/ 或 https://ghproxy.com/ 等。留空则不使用加速。",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+            },
+            onDismissRequest = onHideDialog,
+            confirmButton = {
+                Button(onClick = {
+                    val cleanedPrefix = mirrorPrefixString
+                        .replace("\n", "")
+                        .trim()
+                        .let { if (it.isNotEmpty() && !it.endsWith("/")) "$it/" else it }
+                    onMirrorPrefixChange(cleanedPrefix)
                     onHideDialog()
                 }) {
                     Text(text = stringResource(id = R.string.common_confirm))

@@ -237,6 +237,10 @@ object Prefs {
         get() = runBlocking { dsm.getPreferenceFlow(PrefKeys.prefAlphaRequest).first() }
         set(value) = runBlocking { dsm.editPreference(PrefKeys.prefAlphaKey, value) }
 
+    var githubMirrorPrefix: String
+        get() = runBlocking { dsm.getPreferenceFlow(PrefKeys.prefGithubMirrorPrefixRequest).first() }
+        set(value) = runBlocking { dsm.editPreference(PrefKeys.prefGithubMirrorPrefixKey, value) }
+
     var accessToken: String
         get() = runBlocking { dsm.getPreferenceFlow(PrefKeys.prefAccessTokenRequest).first() }
         set(value) = runBlocking { dsm.editPreference(PrefKeys.prefAccessTokenKey, value) }
@@ -358,6 +362,7 @@ private object PrefKeys {
     val prefDefaultDanmakuMask = booleanPreferencesKey("prefer_enable_webmark")
     val prefEnableFfmpegAudioRenderer = booleanPreferencesKey("enable_ffmpeg_audio_renderer")
     val prefDefaultAudioDelayMs = longPreferencesKey("default_audio_delay_ms")
+    val prefGithubMirrorPrefixKey = stringPreferencesKey("github_mirror_prefix")
 
     val prefIsLoginRequest = PreferenceRequest(prefIsLoginKey, false)
     val prefUidRequest = PreferenceRequest(prefUidKey, 0)
@@ -413,4 +418,5 @@ private object PrefKeys {
     val prefDefaultDanmakuMaskRequest = PreferenceRequest(prefDefaultDanmakuMask, false)
     val prefEnableFfmpegEndererRequest = PreferenceRequest(prefEnableFfmpegAudioRenderer, true)
     val prefDefaultAudioDelayMsRequest = PreferenceRequest(prefDefaultAudioDelayMs, 0L)
+    val prefGithubMirrorPrefixRequest = PreferenceRequest(prefGithubMirrorPrefixKey, "https://gh-proxy.com/")
 }
