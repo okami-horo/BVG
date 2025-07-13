@@ -26,7 +26,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import io.github.oshai.kotlinlogging.KotlinLogging
 import android.os.Handler
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -37,10 +36,6 @@ class ExoMediaPlayer(
     private val context: Context,
     private val options: VideoPlayerOptions
 ) : AbstractVideoPlayer(), Player.Listener {
-
-    companion object {
-        private val logger = KotlinLogging.logger { }
-    }
     var mPlayer: ExoPlayer? = null
     protected var mMediaSource: MediaSource? = null
     
@@ -76,7 +71,6 @@ class ExoMediaPlayer(
 
     @OptIn(UnstableApi::class)
     override fun initPlayer() {
-        logger.info { "ExoMediaPlayer initPlayer() called, current isReleased=$isReleased" }
         //重建播放器前，先释放旧的实例
         mPlayer?.release()
 
@@ -202,13 +196,11 @@ class ExoMediaPlayer(
     }
 
     override fun release() {
-        logger.info { "ExoMediaPlayer release() called, isReleased=$isReleased, isRetrying=$isRetrying" }
         isReleased = true
         isRetrying = false
         mPlayer?.release()
         mPlayer = null
         mMediaSource = null
-        logger.info { "ExoMediaPlayer released successfully" }
     }
 
     override val currentPosition: Long
@@ -231,18 +223,8 @@ class ExoMediaPlayer(
         get() = 0L
 
     override fun onPlaybackStateChanged(playbackState: Int) {
-        val stateString = when (playbackState) {
-            Player.STATE_IDLE -> "IDLE"
-            Player.STATE_BUFFERING -> "BUFFERING"
-            Player.STATE_READY -> "READY"
-            Player.STATE_ENDED -> "ENDED"
-            else -> "UNKNOWN($playbackState)"
-        }
-        logger.info { "ExoMediaPlayer state changed to: $stateString, isReleased=$isReleased" }
-
         // 如果播放器已被释放，不处理状态变化
         if (isReleased) {
-            logger.info { "Ignoring state change due to released player" }
             return
         }
 
@@ -312,11 +294,8 @@ class ExoMediaPlayer(
     override fun onPlayerError(error: PlaybackException) {
         super.onPlayerError(error)
 
-        logger.warn { "ExoMediaPlayer error occurred: ${error.message}, isReleased=$isReleased, isRetrying=$isRetrying, retryCount=$retryCount" }
-
         // 如果播放器已被释放或正在重试，则不处理错误
         if (isReleased || isRetrying) {
-            logger.info { "Ignoring error due to player state: isReleased=$isReleased, isRetrying=$isRetrying" }
             return
         }
 
