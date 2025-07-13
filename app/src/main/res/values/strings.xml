@@ -224,6 +224,10 @@
     <string name="settings_item_other">更多设置</string>
     <string name="settings_item_player_type">播放器内核</string>
     <string name="settings_item_resolution">默认分辨率</string>
+
+    <!-- 播放器类型显示名称 -->
+    <string name="player_type_media3">Media3 播放器</string>
+    <string name="player_type_vlc">VLC 播放器</string>
     <string name="settings_item_storage">存储管理</string>
     <string name="settings_item_ui">界面设置</string>
     <string name="settings_network_enable_proxy_text">使用自定义代理服务器获取部分视频播放地址</string>

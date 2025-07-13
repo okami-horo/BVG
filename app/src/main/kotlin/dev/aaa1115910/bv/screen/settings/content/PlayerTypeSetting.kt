@@ -25,6 +25,7 @@ import dev.aaa1115910.bv.component.settings.SettingsMenuSelectItem
 import dev.aaa1115910.bv.entity.PlayerType
 import dev.aaa1115910.bv.screen.settings.SettingsMenuNavItem
 import dev.aaa1115910.bv.util.Prefs
+import dev.aaa1115910.bv.util.getDisplayName
 
 @Composable
 fun PlayerTypeSetting(
@@ -54,7 +55,7 @@ fun PlayerTypeSetting(
             ) {
                 items(items = PlayerType.entries) { playerType ->
                     SettingsMenuSelectItem(
-                        text = playerType.name,
+                        text = playerType.getDisplayName(context),
                         selected = selectedPlayerType == playerType,
                         onClick = {
                             selectedPlayerType = playerType
