@@ -123,7 +123,10 @@ fun VideoPlayerScreen(
 
                     //播放一段时间后隐藏跳转历史记录
                     if (playerViewModel.lastPlayed != 0 && infoData.currentTime > 3000) {
-                        playerViewModel.lastPlayed = 0
+                        // 只有在非错误恢复状态下才清除播放进度
+                        if (playerViewModel.loadState != RequestState.Failed) {
+                            playerViewModel.lastPlayed = 0
+                        }
                     }
                 }
             }

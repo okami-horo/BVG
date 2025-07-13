@@ -301,7 +301,13 @@ class ExoMediaPlayer(
 
         val lastPosition = currentPosition
 
-        if (retryCount < maxRetryCount) {
+        // 检查是否是403错误
+        val is403Error = error.message?.contains("403") == true ||
+                         error.cause?.message?.contains("403") == true ||
+                         error.message?.contains("Forbidden") == true
+
+        if (retryCount < maxRetryCount && !is403Error) {
+            // 对于403错误，不进行重试，直接通知错误让上层处理
             retryCount++
             isRetrying = true
             CoroutineScope(Dispatchers.Main).launch {
@@ -347,8 +353,14 @@ class ExoMediaPlayer(
                 }
             }
         } else {
-            // 达到最大重试次数，通知错误
-            mPlayerEventListener?.onError(error)
+            // 达到最大重试次数或403错误，通知错误
+            if (is403Error) {
+                // 对于403错误，创建一个包含更多信息的异常
+                val enhancedError = Exception("403 Forbidden - Access denied. Position: $lastPosition ms", error)
+                mPlayerEventListener?.onError(enhancedError)
+            } else {
+                mPlayerEventListener?.onError(error)
+            }
         }
     }
 

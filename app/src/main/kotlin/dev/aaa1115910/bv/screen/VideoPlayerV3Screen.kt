@@ -225,6 +225,9 @@ fun VideoPlayerV3Screen(
             logger.info { "Reset default play speed: $currentPlaySpeed" }
             videoPlayer.speed = currentPlaySpeed
             playerViewModel.danmakuPlayer?.updatePlaySpeed(currentPlaySpeed)
+
+            // 如果是从错误恢复，尝试恢复播放进度
+            playerViewModel.restorePlayProgress()
         }
 
         override fun onPlay() {
@@ -238,7 +241,10 @@ fun VideoPlayerV3Screen(
                 hideBackToHistoryTimer = countDownTimer(5000, 1000, "hideBackToHistoryTimer") {
                     showBackToHistory = false
                     hideBackToHistoryTimer = null
-                    playerViewModel.lastPlayed = 0
+                    // 只有在非错误恢复状态下才清除播放进度
+                    if (!isError) {
+                        playerViewModel.lastPlayed = 0
+                    }
                 }
             }
         }
@@ -296,10 +302,19 @@ fun VideoPlayerV3Screen(
             RequestState.Ready -> {}
             RequestState.Doing -> {}
             RequestState.Done -> {}
-            RequestState.Success -> {}
+            RequestState.Success -> {
+                // 成功加载后清除保存的进度
+                playerViewModel.clearSavedProgress()
+            }
             RequestState.Failed -> {
                 exception = Exception(playerViewModel.errorMessage)
                 isError = true
+
+                // 如果是403错误，保持播放进度不变
+                if (playerViewModel.errorMessage.contains("403") ||
+                    playerViewModel.errorMessage.contains("访问权限不足")) {
+                    logger.warn { "403 error detected in UI, preserving play progress" }
+                }
             }
         }
     }

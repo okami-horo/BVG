@@ -113,6 +113,10 @@ class VideoPlayerV3ViewModel(
     var isVerticalVideo by mutableStateOf(false)
     var proxyArea by mutableStateOf(ProxyArea.MainLand)
 
+    // 保护播放进度，防止在错误恢复过程中丢失
+    private var savedLastPlayed by mutableIntStateOf(0)
+    private var isRecoveringFromError by mutableStateOf(false)
+
     var needPay by mutableStateOf(false)
 
     var logs by mutableStateOf("")
@@ -141,6 +145,12 @@ class VideoPlayerV3ViewModel(
         seasonId: Int? = null,
         continuePlayNext: Boolean = false
     ) {
+        // 保存当前播放进度，防止在加载过程中丢失
+        if (!isRecoveringFromError && lastPlayed > 0) {
+            savedLastPlayed = lastPlayed
+            logger.info { "Saved last played position: $savedLastPlayed" }
+        }
+
         currentAid = avid
         currentCid = cid
         currentEpid = epid ?: 0
@@ -292,10 +302,25 @@ class VideoPlayerV3ViewModel(
             errorMessage = it.localizedMessage ?: "Unknown error"
             loadState = RequestState.Failed
             logger.fException(it) { "Load video failed" }
+
+            // 检查是否是403错误，如果是则标记为错误恢复状态
+            if (it.message?.contains("403") == true || it.message?.contains("访问权限不足") == true) {
+                isRecoveringFromError = true
+                logger.warn { "403 error detected, entering error recovery mode" }
+
+                // 恢复保存的播放进度
+                if (savedLastPlayed > 0) {
+                    lastPlayed = savedLastPlayed
+                    logger.info { "Restored last played position: $lastPlayed" }
+                }
+            }
         }.onSuccess {
             addLogs("加载视频地址成功")
             loadState = RequestState.Success
             logger.fInfo { "Load play url success" }
+
+            // 成功加载后清除错误恢复状态
+            isRecoveringFromError = false
         }
     }
 
@@ -513,6 +538,25 @@ class VideoPlayerV3ViewModel(
         }.onFailure {
             logger.warn { "Send heartbeat failed: ${it.stackTraceToString()}" }
         }
+    }
+
+    /**
+     * 恢复播放进度，用于错误恢复后重新设置播放位置
+     */
+    fun restorePlayProgress() {
+        if (savedLastPlayed > 0 && isRecoveringFromError) {
+            lastPlayed = savedLastPlayed
+            logger.info { "Manually restored play progress: $lastPlayed" }
+        }
+    }
+
+    /**
+     * 清除保存的播放进度
+     */
+    fun clearSavedProgress() {
+        savedLastPlayed = 0
+        isRecoveringFromError = false
+        logger.info { "Cleared saved progress" }
     }
 
     fun loadSubtitle(id: Long) {
