@@ -28,7 +28,6 @@ import com.kuaishou.akdanmaku.DanmakuConfig
 import dev.aaa1115910.bv.component.DanmakuPlayerCompose
 import dev.aaa1115910.bv.component.controllers.VideoPlayerController
 import dev.aaa1115910.bv.component.controllers.info.VideoPlayerInfoData
-import dev.aaa1115910.bv.viewmodel.RequestState
 import dev.aaa1115910.bv.entity.VideoAspectRatio
 import dev.aaa1115910.bv.util.Prefs
 import dev.aaa1115910.bv.util.fInfo
@@ -125,7 +124,7 @@ fun VideoPlayerScreen(
                     //播放一段时间后隐藏跳转历史记录
                     if (playerViewModel.lastPlayed != 0 && infoData.currentTime > 3000) {
                         // 只有在非错误恢复状态下才清除播放进度
-                        if (playerViewModel.loadState != RequestState.Failed) {
+                        if (playerViewModel.loadState != PlayerViewModel.RequestState.Failed) {
                             playerViewModel.lastPlayed = 0
                         }
                     }
