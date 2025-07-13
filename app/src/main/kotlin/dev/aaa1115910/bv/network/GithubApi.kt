@@ -129,14 +129,20 @@ object GithubApi {
         file: File,
         downloadListener: ProgressListener
     ) {
-        val downloadUrl = when (buildTypeName) {
+        val originalDownloadUrl = when (buildTypeName) {
             "debug" -> release.assets.firstOrNull { it.name.contains("debug") }?.browserDownloadUrl
             "alpha" -> release.assets.firstOrNull { it.name.contains("alpha") }?.browserDownloadUrl
             "release" -> release.assets.firstOrNull { it.name.contains("release") }?.browserDownloadUrl
             "r8Test" -> release.assets.firstOrNull { it.name.contains("release") }?.browserDownloadUrl
             else -> release.assets.firstOrNull { it.name.contains("release") }?.browserDownloadUrl
         }
-        downloadUrl ?: throw IllegalStateException("Didn't find download url for build type: $buildTypeName")
+        originalDownloadUrl ?: throw IllegalStateException("Didn't find download url for build type: $buildTypeName")
+
+        // 使用gh-proxy.com镜像加速GitHub release文件下载
+        // 原始链接: https://github.com/owner/repo/releases/download/tag/file.apk
+        // 加速链接: https://gh-proxy.com/https://github.com/owner/repo/releases/download/tag/file.apk
+        val downloadUrl = "https://gh-proxy.com/$originalDownloadUrl"
+
         client.prepareRequest {
             url(downloadUrl)
             onDownload(downloadListener)
