@@ -403,11 +403,12 @@ fun VideoPlayerV3Screen(
         }
     }
 
-    DisposableEffect(Unit) {
-        onDispose {
-            videoPlayer.release()
-        }
-    }
+    // 移除重复的播放器释放，由 BvVideoPlayer 组件统一管理
+    // DisposableEffect(Unit) {
+    //     onDispose {
+    //         videoPlayer.release()
+    //     }
+    // }
 
     DisposableEffect(Unit) {
         clockRefreshTimer = countDownTimer(

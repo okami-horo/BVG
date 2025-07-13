@@ -24,11 +24,17 @@ fun BvVideoPlayer(
     // LibVLC 要用，误删
     isVerticalVideo: Boolean = false
 ) {
-    DisposableEffect(Unit) {
+    DisposableEffect(videoPlayer) {
         videoPlayer.setPlayerEventListener(playerListener)
 
         onDispose {
-            videoPlayer.release()
+            // 只在这里统一释放播放器资源
+            try {
+                videoPlayer.release()
+            } catch (e: Exception) {
+                // 静默处理释放异常，避免崩溃
+                e.printStackTrace()
+            }
         }
     }
 

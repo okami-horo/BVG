@@ -26,6 +26,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import io.github.oshai.kotlinlogging.KotlinLogging
 import android.os.Handler
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -36,6 +37,10 @@ class ExoMediaPlayer(
     private val context: Context,
     private val options: VideoPlayerOptions
 ) : AbstractVideoPlayer(), Player.Listener {
+
+    companion object {
+        private val logger = KotlinLogging.logger { }
+    }
     var mPlayer: ExoPlayer? = null
     protected var mMediaSource: MediaSource? = null
     
@@ -50,6 +55,10 @@ class ExoMediaPlayer(
     private var retryCount = 0
     private val maxRetryCount = 3
     private val retryDelayMs = 500L // 重试间隔时间，单位ms
+
+    // 播放器状态管理
+    private var isReleased = false
+    private var isRetrying = false
 
     // 音频延迟相关属性
     private var _audioDelayMs: Long = options.audioDelayMs
@@ -67,8 +76,12 @@ class ExoMediaPlayer(
 
     @OptIn(UnstableApi::class)
     override fun initPlayer() {
+        logger.info { "ExoMediaPlayer initPlayer() called, current isReleased=$isReleased" }
         //重建播放器前，先释放旧的实例
         mPlayer?.release()
+
+        // 重置状态
+        isReleased = false
 
         val renderersFactory =
             object : DefaultRenderersFactory(context) {
@@ -189,7 +202,13 @@ class ExoMediaPlayer(
     }
 
     override fun release() {
+        logger.info { "ExoMediaPlayer release() called, isReleased=$isReleased, isRetrying=$isRetrying" }
+        isReleased = true
+        isRetrying = false
         mPlayer?.release()
+        mPlayer = null
+        mMediaSource = null
+        logger.info { "ExoMediaPlayer released successfully" }
     }
 
     override val currentPosition: Long
@@ -212,6 +231,21 @@ class ExoMediaPlayer(
         get() = 0L
 
     override fun onPlaybackStateChanged(playbackState: Int) {
+        val stateString = when (playbackState) {
+            Player.STATE_IDLE -> "IDLE"
+            Player.STATE_BUFFERING -> "BUFFERING"
+            Player.STATE_READY -> "READY"
+            Player.STATE_ENDED -> "ENDED"
+            else -> "UNKNOWN($playbackState)"
+        }
+        logger.info { "ExoMediaPlayer state changed to: $stateString, isReleased=$isReleased" }
+
+        // 如果播放器已被释放，不处理状态变化
+        if (isReleased) {
+            logger.info { "Ignoring state change due to released player" }
+            return
+        }
+
         when (playbackState) {
             Player.STATE_IDLE -> {}
             Player.STATE_BUFFERING -> mPlayerEventListener?.onBuffering()
@@ -278,39 +312,60 @@ class ExoMediaPlayer(
     override fun onPlayerError(error: PlaybackException) {
         super.onPlayerError(error)
 
+        logger.warn { "ExoMediaPlayer error occurred: ${error.message}, isReleased=$isReleased, isRetrying=$isRetrying, retryCount=$retryCount" }
+
+        // 如果播放器已被释放或正在重试，则不处理错误
+        if (isReleased || isRetrying) {
+            logger.info { "Ignoring error due to player state: isReleased=$isReleased, isRetrying=$isRetrying" }
+            return
+        }
+
         val lastPosition = currentPosition
 
         if (retryCount < maxRetryCount) {
             retryCount++
+            isRetrying = true
             CoroutineScope(Dispatchers.Main).launch {
-                delay(retryDelayMs)
+                try {
+                    delay(retryDelayMs)
 
-                // 释放并重建播放器
-                initPlayer()
+                    // 再次检查播放器状态
+                    if (isReleased) {
+                        return@launch
+                    }
 
-                // 重新创建媒体源
-                val videoMediaSource = currentVideoUrl?.let {
-                    ProgressiveMediaSource.Factory(dataSourceFactory)
-                        .createMediaSource(MediaItem.fromUri(it))
+                    // 释放并重建播放器
+                    initPlayer()
+
+                    // 重新创建媒体源
+                    val videoMediaSource = currentVideoUrl?.let {
+                        ProgressiveMediaSource.Factory(dataSourceFactory)
+                            .createMediaSource(MediaItem.fromUri(it))
+                    }
+                    val audioMediaSource = currentAudioUrl?.let {
+                        ProgressiveMediaSource.Factory(dataSourceFactory)
+                            .createMediaSource(MediaItem.fromUri(it))
+                    }
+
+                    val mediaSources = listOfNotNull(videoMediaSource, audioMediaSource)
+                    mMediaSource = MergingMediaSource(
+                        /* isAtomic= */ true,
+                        *mediaSources.toTypedArray()
+                    )
+
+                    // 重新设置媒体源，并直接跳转到记录的位置
+                    mPlayer?.setMediaSource(mMediaSource!!, lastPosition)
+                    mPlayer?.prepare()
+                    mPlayer?.play()
+
+                    // 通知UI正在缓冲
+                    mPlayerEventListener?.onBuffering()
+                } catch (e: Exception) {
+                    // 重试过程中发生异常，通知错误
+                    mPlayerEventListener?.onError(e)
+                } finally {
+                    isRetrying = false
                 }
-                val audioMediaSource = currentAudioUrl?.let {
-                    ProgressiveMediaSource.Factory(dataSourceFactory)
-                        .createMediaSource(MediaItem.fromUri(it))
-                }
-
-                val mediaSources = listOfNotNull(videoMediaSource, audioMediaSource)
-                mMediaSource = MergingMediaSource(
-                    /* isAtomic= */ true,
-                    *mediaSources.toTypedArray()
-                )
-
-                // 重新设置媒体源，并直接跳转到记录的位置
-                mPlayer?.setMediaSource(mMediaSource!!, lastPosition)
-                mPlayer?.prepare()
-                mPlayer?.play()
-
-                // 通知UI正在缓冲
-                mPlayerEventListener?.onBuffering()
             }
         } else {
             // 达到最大重试次数，通知错误
