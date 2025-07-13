@@ -129,14 +129,18 @@ object GithubApi {
         file: File,
         downloadListener: ProgressListener
     ) {
-        val downloadUrl = when (buildTypeName) {
+        val originalDownloadUrl = when (buildTypeName) {
             "debug" -> release.assets.firstOrNull { it.name.contains("debug") }?.browserDownloadUrl
             "alpha" -> release.assets.firstOrNull { it.name.contains("alpha") }?.browserDownloadUrl
             "release" -> release.assets.firstOrNull { it.name.contains("release") }?.browserDownloadUrl
             "r8Test" -> release.assets.firstOrNull { it.name.contains("release") }?.browserDownloadUrl
             else -> release.assets.firstOrNull { it.name.contains("release") }?.browserDownloadUrl
         }
-        downloadUrl ?: throw IllegalStateException("Didn't find download url for build type: $buildTypeName")
+        originalDownloadUrl ?: throw IllegalStateException("Didn't find download url for build type: $buildTypeName")
+
+        // 使用gitclone.com镜像加速下载
+        val downloadUrl = originalDownloadUrl.replace("github.com", "gitclone.com")
+
         client.prepareRequest {
             url(downloadUrl)
             onDownload(downloadListener)
