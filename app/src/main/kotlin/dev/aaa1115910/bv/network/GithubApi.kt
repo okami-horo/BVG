@@ -138,8 +138,10 @@ object GithubApi {
         }
         originalDownloadUrl ?: throw IllegalStateException("Didn't find download url for build type: $buildTypeName")
 
-        // 使用gitclone.com镜像加速下载
-        val downloadUrl = originalDownloadUrl.replace("github.com", "gitclone.com")
+        // 使用gh-proxy.com镜像加速GitHub release文件下载
+        // 原始链接: https://github.com/owner/repo/releases/download/tag/file.apk
+        // 加速链接: https://gh-proxy.com/https://github.com/owner/repo/releases/download/tag/file.apk
+        val downloadUrl = "https://gh-proxy.com/$originalDownloadUrl"
 
         client.prepareRequest {
             url(downloadUrl)
